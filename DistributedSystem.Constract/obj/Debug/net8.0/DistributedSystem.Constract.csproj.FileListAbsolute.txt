@@ -1,0 +1,12 @@
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\bin\Debug\net8.0\DistributedSystem.Constract.deps.json
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\bin\Debug\net8.0\DistributedSystem.Constract.dll
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\bin\Debug\net8.0\DistributedSystem.Constract.pdb
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\DistributedSystem.Constract.csproj.AssemblyReference.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\DistributedSystem.Constract.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\DistributedSystem.Constract.AssemblyInfoInputs.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\DistributedSystem.Constract.AssemblyInfo.cs
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\DistributedSystem.Constract.csproj.CoreCompileInputs.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\DistributedSystem.Constract.dll
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\refint\DistributedSystem.Constract.dll
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\DistributedSystem.Constract.pdb
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\ref\DistributedSystem.Constract.dll

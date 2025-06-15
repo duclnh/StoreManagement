@@ -1,0 +1,7 @@
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Api\obj\Debug\net8.0\DistributedSystem.Api.csproj.AssemblyReference.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Api\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Api\obj\Debug\net8.0\DistributedSystem.Api.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Api\obj\Debug\net8.0\DistributedSystem.Api.AssemblyInfoInputs.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Api\obj\Debug\net8.0\DistributedSystem.Api.AssemblyInfo.cs
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Api\obj\Debug\net8.0\DistributedSystem.Api.csproj.CoreCompileInputs.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Api\obj\Debug\net8.0\DistributedSystem.Api.MvcApplicationPartsAssemblyInfo.cache

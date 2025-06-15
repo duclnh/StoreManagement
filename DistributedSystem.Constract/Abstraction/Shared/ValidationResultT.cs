@@ -1,0 +1,18 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DistributedSystem.Constract.Abstraction.Shared
+{
+    public sealed class ValidationResult<TValue> : Result<TValue>, IValidationResult
+    {
+        private ValidationResult(IDictionary<string, string[]> errors) : base(default, false, IValidationResult.ValidatorError)
+            => Errors = errors;
+
+        public IDictionary<string, string[]> Errors { get; }
+
+        public static ValidationResult<TValue> WithErrors(IDictionary<string, string[]> errors) => new(errors);
+    }
+}

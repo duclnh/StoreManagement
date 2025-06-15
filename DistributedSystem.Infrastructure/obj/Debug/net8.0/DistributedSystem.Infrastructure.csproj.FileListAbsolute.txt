@@ -1,0 +1,11 @@
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\bin\Debug\net8.0\DistributedSystem.Infrastructure.deps.json
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\bin\Debug\net8.0\DistributedSystem.Infrastructure.dll
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\bin\Debug\net8.0\DistributedSystem.Infrastructure.pdb
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\obj\Debug\net8.0\DistributedSystem.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\obj\Debug\net8.0\DistributedSystem.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\obj\Debug\net8.0\DistributedSystem.Infrastructure.AssemblyInfo.cs
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\obj\Debug\net8.0\DistributedSystem.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\obj\Debug\net8.0\DistributedSystem.Infrastructure.dll
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\obj\Debug\net8.0\refint\DistributedSystem.Infrastructure.dll
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\obj\Debug\net8.0\DistributedSystem.Infrastructure.pdb
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\obj\Debug\net8.0\ref\DistributedSystem.Infrastructure.dll

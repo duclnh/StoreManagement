@@ -1,0 +1,5 @@
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\obj\Debug\net8.0\DistributedSystem.Application.csproj.AssemblyReference.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\obj\Debug\net8.0\DistributedSystem.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\obj\Debug\net8.0\DistributedSystem.Application.AssemblyInfoInputs.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\obj\Debug\net8.0\DistributedSystem.Application.AssemblyInfo.cs
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\obj\Debug\net8.0\DistributedSystem.Application.csproj.CoreCompileInputs.cache

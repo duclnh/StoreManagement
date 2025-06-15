@@ -1,0 +1,11 @@
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\bin\Debug\net8.0\DistributedSystem.Presentation.deps.json
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\bin\Debug\net8.0\DistributedSystem.Presentation.dll
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\bin\Debug\net8.0\DistributedSystem.Presentation.pdb
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\DistributedSystem.Presentation.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\DistributedSystem.Presentation.AssemblyInfoInputs.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\DistributedSystem.Presentation.AssemblyInfo.cs
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\DistributedSystem.Presentation.csproj.CoreCompileInputs.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\DistributedSystem.Presentation.dll
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\refint\DistributedSystem.Presentation.dll
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\DistributedSystem.Presentation.pdb
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\ref\DistributedSystem.Presentation.dll
