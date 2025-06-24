@@ -9,3 +9,8 @@ C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\ob
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\refint\DistributedSystem.Presentation.dll
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\DistributedSystem.Presentation.pdb
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\ref\DistributedSystem.Presentation.dll
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\bin\Debug\net8.0\DistributedSystem.Constract.dll
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\bin\Debug\net8.0\DistributedSystem.Constract.pdb
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\DistributedSystem.Presentation.csproj.AssemblyReference.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\DistributedSystem.Presentation.sourcelink.json
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\obj\Debug\net8.0\Distribu.AFB856DA.Up2Date

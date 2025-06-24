@@ -13,7 +13,7 @@ namespace DistributedSystem.Constract.Abstraction.Shared
                 "A validation problem occurred"
             );
 
-        //Error[] Errors { get; }
-        IDictionary<string, string[]> Errors { get; }
+        Error[] Errors { get; }
+        //IDictionary<string, string[]> Errors { get; }
     }
 }

@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+    rabbitmq:
+        container_name: rabbitmq
+        image: rabbitmq:3-management-alpine
+        ports:
+            - "5672:5672"
+            - "15672:15672" 
+        environment:
+            RABBITMQ_DEFAULT_USER: "guest"
+            RABBITMQ_DEFAULT_PASS: "guest"
+            RABBITMQ_DEFAULT_VHOST: "duclnh"
+
+    reddis:
+        container_name: reddis
+        image: redis:8.2-m01-bookworm
+        ports:
+            - "6379:6379"

@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="DependencyInjection\Options\" />
-    <Folder Include="UserCases\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DistributedSystem.Constract\DistributedSystem.Constract.csproj" />
     <ProjectReference Include="..\DistributedSystem.Domain\DistributedSystem.Domain.csproj" />
+    <ProjectReference Include="..\DistributedSystem.Persistence\DistributedSystem.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

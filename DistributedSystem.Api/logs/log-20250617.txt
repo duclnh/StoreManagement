@@ -1,0 +1,98 @@
+2025-06-17 09:54:19.731 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 09:55:56.747 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 09:56:03.568 +07:00 [WRN] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2025-06-17 09:56:03.613 +07:00 [WRN] No store type was specified for the decimal property 'Price' on entity type 'Product'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-06-17 09:56:04.568 +07:00 [WRN] Long Time Running - Request Details: GetProductsQuery (7496) miliseconds {"$type":"GetProductsQuery"}
+2025-06-17 09:57:44.195 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 09:57:44.985 +07:00 [WRN] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2025-06-17 09:57:45.046 +07:00 [WRN] No store type was specified for the decimal property 'Price' on entity type 'Product'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-06-17 09:59:02.790 +07:00 [WRN] Long Time Running - Request Details: GetProductsQuery (27373) miliseconds {"$type":"GetProductsQuery"}
+2025-06-17 10:28:23.964 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 10:28:30.259 +07:00 [WRN] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2025-06-17 10:28:30.303 +07:00 [WRN] No store type was specified for the decimal property 'Price' on entity type 'Product'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-06-17 10:28:30.893 +07:00 [WRN] Long Time Running - Request Details: GetProductsQuery (6705) miliseconds {"$type":"GetProductsQuery"}
+2025-06-17 10:29:25.800 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 12:32:38.813 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 12:35:38.431 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 12:35:38.721 +07:00 [ERR] The value of a failure result can not be accessed.
+System.InvalidOperationException: The value of a failure result can not be accessed.
+   at DistributedSystem.Constract.Abstraction.Shared.Result`1.get_Value() in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\Abstraction\Shared\ResultT.cs:line 17
+   at DistributedSystem.Presentation.Apis.Identity.AuthApi.AuthenicationV1(ISender sender, Login login) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\Apis\Identity\AuthApi.cs:line 33
+   at Microsoft.AspNetCore.Http.RequestDelegateFactory.ExecuteTaskResult[T](Task`1 task, HttpContext httpContext)
+   at Microsoft.AspNetCore.Http.RequestDelegateFactory.<>c__DisplayClass102_2.<<HandleRequestBodyAndCompileRequestDelegateForJson>b__2>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at DistributedSystem.Api.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Api\Middleware\ExceptionHandlingMiddleware.cs:line 17
+2025-06-17 12:36:51.776 +07:00 [ERR] The value of a failure result can not be accessed.
+System.InvalidOperationException: The value of a failure result can not be accessed.
+   at DistributedSystem.Constract.Abstraction.Shared.Result`1.get_Value() in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\Abstraction\Shared\ResultT.cs:line 17
+   at DistributedSystem.Presentation.Apis.Identity.AuthApi.AuthenicationV1(ISender sender, Login login) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\Apis\Identity\AuthApi.cs:line 33
+   at Microsoft.AspNetCore.Http.RequestDelegateFactory.ExecuteTaskResult[T](Task`1 task, HttpContext httpContext)
+   at Microsoft.AspNetCore.Http.RequestDelegateFactory.<>c__DisplayClass102_2.<<HandleRequestBodyAndCompileRequestDelegateForJson>b__2>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at DistributedSystem.Api.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Api\Middleware\ExceptionHandlingMiddleware.cs:line 17
+2025-06-17 12:37:31.595 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 12:40:38.282 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 12:43:02.900 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 12:43:10.361 +07:00 [ERR] Object reference not set to an instance of an object.
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at DistributedSystem.Infrastructure.Authentication.JwtTokenService.GenerateAccessToken(IEnumerable`1 claims) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\Authentication\JwtTokenService.cs:line 27
+   at DistributedSystem.Application.UserCases.V1.Queries.Identity.GetLoginQueryHandler.Handle(Login request, CancellationToken cancellationToken) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\UserCases\V1\Queries\Identity\GetLoginQueryHandler.cs:line 35
+   at DistributedSystem.Application.Behaviors.TransactionPipelineBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\Behaviors\TransactionPipelineBehavior.cs:line 31
+   at DistributedSystem.Application.Behaviors.PerformancePipelineBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\Behaviors\PerformancePipelineBehavior.cs:line 27
+   at DistributedSystem.Application.Behaviors.ValidationPipelineBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\Behaviors\ValidationPipelineBehavior.cs:line 38
+   at DistributedSystem.Presentation.Apis.Identity.AuthApi.AuthenicationV1(ISender sender, Login login) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\Apis\Identity\AuthApi.cs:line 29
+   at Microsoft.AspNetCore.Http.RequestDelegateFactory.ExecuteTaskResult[T](Task`1 task, HttpContext httpContext)
+   at Microsoft.AspNetCore.Http.RequestDelegateFactory.<>c__DisplayClass102_2.<<HandleRequestBodyAndCompileRequestDelegateForJson>b__2>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at DistributedSystem.Api.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Api\Middleware\ExceptionHandlingMiddleware.cs:line 17
+2025-06-17 12:53:34.206 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 12:53:49.877 +07:00 [ERR] Object reference not set to an instance of an object.
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at DistributedSystem.Infrastructure.Authentication.JwtTokenService.GenerateAccessToken(IEnumerable`1 claims) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\Authentication\JwtTokenService.cs:line 27
+   at DistributedSystem.Application.UserCases.V1.Queries.Identity.GetLoginQueryHandler.Handle(Login request, CancellationToken cancellationToken) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\UserCases\V1\Queries\Identity\GetLoginQueryHandler.cs:line 35
+   at DistributedSystem.Application.Behaviors.TransactionPipelineBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\Behaviors\TransactionPipelineBehavior.cs:line 31
+   at DistributedSystem.Application.Behaviors.PerformancePipelineBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\Behaviors\PerformancePipelineBehavior.cs:line 27
+   at DistributedSystem.Application.Behaviors.ValidationPipelineBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\Behaviors\ValidationPipelineBehavior.cs:line 50
+   at DistributedSystem.Presentation.Apis.Identity.AuthApi.AuthenicationV1(ISender sender, Login login) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\Apis\Identity\AuthApi.cs:line 29
+   at Microsoft.AspNetCore.Http.RequestDelegateFactory.ExecuteTaskResult[T](Task`1 task, HttpContext httpContext)
+   at Microsoft.AspNetCore.Http.RequestDelegateFactory.<>c__DisplayClass102_2.<<HandleRequestBodyAndCompileRequestDelegateForJson>b__2>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at DistributedSystem.Api.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Api\Middleware\ExceptionHandlingMiddleware.cs:line 17
+2025-06-17 15:59:23.798 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 16:06:25.540 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 16:12:22.602 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 16:12:23.018 +07:00 [ERR] IDX10703: Cannot create a 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey', key length is zero.
+System.ArgumentException: IDX10703: Cannot create a 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey', key length is zero.
+   at Microsoft.IdentityModel.Tokens.SymmetricSecurityKey..ctor(Byte[] key)
+   at DistributedSystem.Infrastructure.Authentication.JwtTokenService.GenerateAccessToken(IEnumerable`1 claims) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Infrastructure\Authentication\JwtTokenService.cs:line 27
+   at DistributedSystem.Application.UserCases.V1.Queries.Identity.GetLoginQueryHandler.Handle(Login request, CancellationToken cancellationToken) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\UserCases\V1\Queries\Identity\GetLoginQueryHandler.cs:line 35
+   at DistributedSystem.Application.Behaviors.TransactionPipelineBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\Behaviors\TransactionPipelineBehavior.cs:line 31
+   at DistributedSystem.Application.Behaviors.PerformancePipelineBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\Behaviors\PerformancePipelineBehavior.cs:line 27
+   at DistributedSystem.Application.Behaviors.ValidationPipelineBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Application\Behaviors\ValidationPipelineBehavior.cs:line 50
+   at DistributedSystem.Presentation.Apis.Identity.AuthApi.AuthenicationV1(ISender sender, Login login) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Presentation\Apis\Identity\AuthApi.cs:line 29
+   at Microsoft.AspNetCore.Http.RequestDelegateFactory.ExecuteTaskResult[T](Task`1 task, HttpContext httpContext)
+   at Microsoft.AspNetCore.Http.RequestDelegateFactory.<>c__DisplayClass102_2.<<HandleRequestBodyAndCompileRequestDelegateForJson>b__2>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at DistributedSystem.Api.Middleware.ExceptionHandlingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next) in C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Api\Middleware\ExceptionHandlingMiddleware.cs:line 17
+2025-06-17 16:14:14.960 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-06-17 16:14:23.609 +07:00 [WRN] Long Time Running - Request Details: Login (8433) miliseconds {"Email":"user@example.com","Password":"string","$type":"Login"}

@@ -6,6 +6,7 @@ C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\D
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\DistributedSystem.Constract.AssemblyInfoInputs.cache
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\DistributedSystem.Constract.AssemblyInfo.cs
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\DistributedSystem.Constract.csproj.CoreCompileInputs.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\DistributedSystem.Constract.sourcelink.json
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\DistributedSystem.Constract.dll
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\refint\DistributedSystem.Constract.dll
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Constract\obj\Debug\net8.0\DistributedSystem.Constract.pdb

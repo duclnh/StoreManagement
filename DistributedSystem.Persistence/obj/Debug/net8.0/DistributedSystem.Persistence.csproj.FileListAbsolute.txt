@@ -1,10 +1,17 @@
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\bin\Debug\net8.0\DistributedSystem.Persistence.deps.json
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\bin\Debug\net8.0\DistributedSystem.Persistence.dll
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\bin\Debug\net8.0\DistributedSystem.Persistence.pdb
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\bin\Debug\net8.0\DistributedSystem.Constract.dll
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\bin\Debug\net8.0\DistributedSystem.Domain.dll
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\bin\Debug\net8.0\DistributedSystem.Domain.pdb
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\bin\Debug\net8.0\DistributedSystem.Constract.pdb
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\obj\Debug\net8.0\DistributedSystem.Persistence.csproj.AssemblyReference.cache
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\obj\Debug\net8.0\DistributedSystem.Persistence.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\obj\Debug\net8.0\DistributedSystem.Persistence.AssemblyInfoInputs.cache
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\obj\Debug\net8.0\DistributedSystem.Persistence.AssemblyInfo.cs
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\obj\Debug\net8.0\DistributedSystem.Persistence.csproj.CoreCompileInputs.cache
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\obj\Debug\net8.0\DistributedSystem.Persistence.sourcelink.json
+C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\obj\Debug\net8.0\Distribu.A99BE7F5.Up2Date
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\obj\Debug\net8.0\DistributedSystem.Persistence.dll
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\obj\Debug\net8.0\refint\DistributedSystem.Persistence.dll
 C:\Users\duclnh\source\repos\DistributedSystem\DistributedSystem.Persistence\obj\Debug\net8.0\DistributedSystem.Persistence.pdb

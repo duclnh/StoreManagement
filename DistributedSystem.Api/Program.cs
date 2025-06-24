@@ -2,6 +2,9 @@ using Carter;
 using DistributedSystem.Api.DependencyInjection.Extensions;
 using DistributedSystem.Api.Middleware;
 using DistributedSystem.Application.DependencyInjection.Extensions;
+using DistributedSystem.Infrastructure.DependencyInjections.Extensions;
+using DistributedSystem.Persistence.DependencyInjections.Extensions;
+using DistributedSystem.Persistence.DependencyInjections.Options;
 using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
 using Serilog;
 
@@ -20,18 +23,18 @@ builder.Logging
 
 builder.Host.UseSerilog();
 
-builder.Services.AddConfigureMediator();
-builder.Services.AddConfigureAutoMapper();
-
-builder.Services.AddTransient<ExceptionHandlingMiddleware>();
-
 builder.Services.AddCarter();
+
+
+//=> define api controller in Presentation
+//builder.Services.AddControllers()
+//    .AddApplicationPart(DistributedSystem.Presentation.AssemblyReference.Assembly);
 
 builder.Services
     .AddSwaggerGenNewtonsoftSupport()
     .AddFluentValidationRulesToSwagger()
     .AddEndpointsApiExplorer()
-    .AddSwagger();
+    .AddSwaggerApi();
 
 builder.Services
     .AddApiVersioning(options => options.ReportApiVersions = true)
@@ -41,22 +44,39 @@ builder.Services
         options.SubstituteApiVersionInUrl = true;
     });
 
+builder.Services.AddJwtAuthenticationApplication(builder.Configuration);
+
+
+builder.Services.AddMediatorApplication();
+builder.Services.AddAutoMapperApplication();
+
+builder.Services.AddServiceInfrastructure();
+builder.Services.AddRedisInfrastructure(builder.Configuration);
+
+builder.Services.AddInterceptorPersistence();
+builder.Services.AddSqlServerPersistence();
+builder.Services.ConfigureSqlServerRetryOptionsPersistence(builder.Configuration.GetSection(nameof(SqlServerRetryOptions)));
+builder.Services.AddRepositoryPersistence();
+
+
+builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.MapCarter();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
-    app.ConfigureSwagger();
+    app.UseSwaggerApi();
 }
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
+app.UseAuthentication();
 
-app.MapCarter();
+app.UseAuthorization();
 
 //app.MapControllers();
 try

@@ -83,6 +83,10 @@
               "target": "Package",
               "version": "[6.1.0, )"
             },
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[8.0.0, )"
@@ -163,6 +167,9 @@
               },
               "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Domain\\DistributedSystem.Domain.csproj": {
                 "projectPath": "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Domain\\DistributedSystem.Domain.csproj"
+              },
+              "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Persistence\\DistributedSystem.Persistence.csproj": {
+                "projectPath": "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Persistence\\DistributedSystem.Persistence.csproj"
               }
             }
           }
@@ -271,6 +278,14 @@
               "target": "Package",
               "version": "[11.8.1, )"
             },
+            "MassTransit.Newtonsoft": {
+              "target": "Package",
+              "version": "[8.4.1, )"
+            },
+            "MassTransit.RabbitMQ": {
+              "target": "Package",
+              "version": "[8.4.1, )"
+            },
             "MediatR": {
               "target": "Package",
               "version": "[12.2.0, )"
@@ -278,6 +293,10 @@
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[8.0.17, )"
+            },
+            "MongoDB.Bson": {
+              "target": "Package",
+              "version": "[3.4.0, )"
             }
           },
           "imports": [
@@ -328,7 +347,11 @@
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
-            "projectReferences": {}
+            "projectReferences": {
+              "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Constract\\DistributedSystem.Constract.csproj": {
+                "projectPath": "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Constract\\DistributedSystem.Constract.csproj"
+              }
+            }
           }
         },
         "warningProperties": {
@@ -346,6 +369,12 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -394,7 +423,14 @@
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
-            "projectReferences": {}
+            "projectReferences": {
+              "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Application\\DistributedSystem.Application.csproj": {
+                "projectPath": "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Application\\DistributedSystem.Application.csproj"
+              },
+              "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Persistence\\DistributedSystem.Persistence.csproj": {
+                "projectPath": "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Persistence\\DistributedSystem.Persistence.csproj"
+              }
+            }
           }
         },
         "warningProperties": {
@@ -412,6 +448,44 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "MassTransit": {
+              "target": "Package",
+              "version": "[8.4.1, )"
+            },
+            "MassTransit.Newtonsoft": {
+              "target": "Package",
+              "version": "[8.4.1, )"
+            },
+            "MassTransit.RabbitMQ": {
+              "target": "Package",
+              "version": "[8.4.1, )"
+            },
+            "Microsoft.Extensions.Caching.StackExchangeRedis": {
+              "target": "Package",
+              "version": "[9.0.6, )"
+            },
+            "Microsoft.Extensions.DependencyInjection": {
+              "target": "Package",
+              "version": "[8.0.1, )"
+            },
+            "Microsoft.Extensions.Options.ConfigurationExtensions": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Quartz": {
+              "target": "Package",
+              "version": "[3.14.0, )"
+            },
+            "Quartz.Extensions.Hosting": {
+              "target": "Package",
+              "version": "[3.14.0, )"
+            },
+            "Serilog.AspNetCore": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -460,7 +534,11 @@
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
-            "projectReferences": {}
+            "projectReferences": {
+              "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Domain\\DistributedSystem.Domain.csproj": {
+                "projectPath": "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Domain\\DistributedSystem.Domain.csproj"
+              }
+            }
           }
         },
         "warningProperties": {
@@ -478,6 +556,40 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.17, )"
+            },
+            "Microsoft.EntityFrameworkCore.Proxies": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.DependencyInjection": {
+              "target": "Package",
+              "version": "[8.0.1, )"
+            },
+            "Microsoft.Extensions.Hosting": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Options.ConfigurationExtensions": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Options.DataAnnotations": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -526,7 +638,11 @@
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
-            "projectReferences": {}
+            "projectReferences": {
+              "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Constract\\DistributedSystem.Constract.csproj": {
+                "projectPath": "C:\\Users\\duclnh\\source\\repos\\DistributedSystem\\DistributedSystem.Constract\\DistributedSystem.Constract.csproj"
+              }
+            }
           }
         },
         "warningProperties": {
@@ -544,6 +660,16 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "Asp.Versioning.Mvc.ApiExplorer": {
+              "target": "Package",
+              "version": "[7.1.0, )"
+            },
+            "Carter": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
