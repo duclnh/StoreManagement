@@ -2,8 +2,9 @@
 
 namespace DistributedSystem.Constract.Abstraction.Message
 {
-    public interface IDomainEventHandler<TEvent> : INotificationHandler<TEvent>
-        where TEvent: IDomainEvent
-    {
-    }
+    
+    // public interface IDomainEventHandler<TEvent> //: INotificationHandler<TEvent>
+    //     where TEvent : IDomainEvent
+    // {
+    // }
 }

@@ -5,7 +5,9 @@ using DistributedSystem.Application.DependencyInjection.Extensions;
 using DistributedSystem.Infrastructure.DependencyInjections.Extensions;
 using DistributedSystem.Persistence.DependencyInjections.Extensions;
 using DistributedSystem.Persistence.DependencyInjections.Options;
+using HealthChecks.UI.Client;
 using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,6 +54,10 @@ builder.Services.AddAutoMapperApplication();
 
 builder.Services.AddServiceInfrastructure();
 builder.Services.AddRedisInfrastructure(builder.Configuration);
+builder.Services.AddMassTransitRabbitMQInfrastructure(builder.Configuration);
+builder.Services.AddQuartzInfrastructure();
+builder.Services.AddHealthChecksInfrastructure(builder.Configuration);
+builder.Services.AddMediatRInfrastructure();
 
 builder.Services.AddInterceptorPersistence();
 builder.Services.AddSqlServerPersistence();
@@ -77,6 +83,11 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 //app.MapControllers();
 try
