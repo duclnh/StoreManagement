@@ -1,5 +1,7 @@
 using DistributedSystem.Constract.Services.V1.Product;
 using DistributedSystem.Infrastructure.Consumers.Abstract.Messages;
+using DistributedSystem.Infrastructure.Consumers.Abstract.Repositories;
+using DistributedSystem.Infrastructure.Consumers.Models;
 using MediatR;
 
 namespace DistributedSystem.Infrastructure.Consumers.MessageBuses.Consumers.Events
@@ -8,20 +10,20 @@ namespace DistributedSystem.Infrastructure.Consumers.MessageBuses.Consumers.Even
     {
         public class ProductCreatedConsumer : Consumer<DomainEvent.ProductCreated>
         {
-            public ProductCreatedConsumer(ISender sender) : base(sender)
+            public ProductCreatedConsumer(ISender sender, IMongoRepository<EventProjection> mongoRepository) : base(sender, mongoRepository)
             {
             }
         }
         public class ProductDeletedConsumer : Consumer<DomainEvent.ProductDeleted>
         {
-            public ProductDeletedConsumer(ISender sender) : base(sender)
+            public ProductDeletedConsumer(ISender sender, IMongoRepository<EventProjection> mongoRepository) : base(sender, mongoRepository)
             {
             }
         }
 
         public class ProductUpdatedConsumer : Consumer<DomainEvent.ProductUpdated>
         {
-            public ProductUpdatedConsumer(ISender sender) : base(sender)
+            public ProductUpdatedConsumer(ISender sender, IMongoRepository<EventProjection> mongoRepository) : base(sender, mongoRepository)
             {
             }
         }

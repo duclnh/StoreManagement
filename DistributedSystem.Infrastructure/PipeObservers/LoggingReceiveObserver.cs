@@ -28,7 +28,7 @@ namespace DistributedSystem.Infrastructure.PipeObservers
         {
             await Task.Yield();
 
-            Log.Error("Consuming {Message} from {Namespace}, Duration: {Duration}, ConsumerType: {ConsumerType}, CorrelationId: {CorrelationId}",
+            Log.Debug("Consuming {Message} from {Namespace}, Duration: {Duration}, ConsumerType: {ConsumerType}, CorrelationId: {CorrelationId}",
              typeof(T).Name,
              typeof(T).Namespace,
              duration,

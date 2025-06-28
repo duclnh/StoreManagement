@@ -22,6 +22,8 @@ namespace DistributedSystem.Application.UserCases.V1.Commands.Product
             if (product is null)
                 throw new ProductException.ProductNotFoundException(request.Id);
 
+            product.DeleteProduct();
+
             _productRepositoryBase.Remove(product);
 
             return Result.Success();

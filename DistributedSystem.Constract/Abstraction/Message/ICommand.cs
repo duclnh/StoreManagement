@@ -1,4 +1,5 @@
 ﻿using DistributedSystem.Constract.Abstraction.Shared;
+using MassTransit;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -8,10 +9,12 @@ using System.Threading.Tasks;
 
 namespace DistributedSystem.Constract.Abstraction.Message
 {
+    [ExcludeFromTopology]
     public interface ICommand : IRequest<Result>
     {
     }
 
+        [ExcludeFromTopology]
     public interface ICommand<TResponse> : IRequest<Result<TResponse>>
     {
 

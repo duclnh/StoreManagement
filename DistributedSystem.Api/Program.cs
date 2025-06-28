@@ -52,12 +52,14 @@ builder.Services.AddJwtAuthenticationApplication(builder.Configuration);
 builder.Services.AddMediatorApplication();
 builder.Services.AddAutoMapperApplication();
 
+builder.Services.AddQuartzInfrastructure();
 builder.Services.AddServiceInfrastructure();
+builder.Services.AddMediatRInfrastructure();
 builder.Services.AddRedisInfrastructure(builder.Configuration);
 builder.Services.AddMassTransitRabbitMQInfrastructure(builder.Configuration);
-builder.Services.AddQuartzInfrastructure();
 builder.Services.AddHealthChecksInfrastructure(builder.Configuration);
-builder.Services.AddMediatRInfrastructure();
+builder.Services.ConfigurationServicesInfrastructure(builder.Configuration);
+
 
 builder.Services.AddInterceptorPersistence();
 builder.Services.AddSqlServerPersistence();

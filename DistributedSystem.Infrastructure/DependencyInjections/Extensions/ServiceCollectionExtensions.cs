@@ -3,12 +3,15 @@ using DistributedSystem.Constract.JsonConverters;
 using DistributedSystem.Infrastructure.Authentication;
 using DistributedSystem.Infrastructure.BackgroundJobs;
 using DistributedSystem.Infrastructure.Caching;
+using DistributedSystem.Infrastructure.Consumers.Abstract.Repositories;
+using DistributedSystem.Infrastructure.Consumers.Repositories;
 using DistributedSystem.Infrastructure.DependencyInjections.Options;
 using DistributedSystem.Infrastructure.PipeObservers;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Quartz;
 using System;
@@ -22,6 +25,18 @@ namespace DistributedSystem.Infrastructure.DependencyInjections.Extensions
 {
     public static class ServiceCollectionExtensions
     {
+        public static void ConfigurationServicesInfrastructure(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<MongoDbOptions>(configuration.GetSection(nameof(MongoDbOptions)));
+            
+            services.AddSingleton<IMongoDbOptions>(serviceProvider =>
+                serviceProvider.GetRequiredService<IOptions<MongoDbOptions>>().Value
+            );
+
+            services.AddScoped(typeof(IMongoRepository<>), typeof(MongoRepository<>));
+            
+        }
+
         public static void AddServiceInfrastructure(this IServiceCollection services)
         {
             services.AddTransient<IJwtTokenService, JwtTokenService>()
@@ -114,7 +129,7 @@ namespace DistributedSystem.Infrastructure.DependencyInjections.Extensions
                    .AddTrigger(trigger =>
                         trigger.ForJob(jobKey)
                                .WithSimpleSchedule(schedule =>
-                                    schedule.WithIntervalInSeconds(100)
+                                    schedule.WithInterval(TimeSpan.FromMicroseconds(100))
                                             .RepeatForever())
 
                    );
@@ -151,9 +166,12 @@ namespace DistributedSystem.Infrastructure.DependencyInjections.Extensions
                     tags: new[] { "cache", "redis" });
             }
 
-            services.AddHealthChecks()
-                    .AddRabbitMQ();
+            healthChecks.AddRabbitMQ();
 
+            //Mongodb
+            //var mongodbConnection = configuration["MongoDbOptions:DefaultConnectString"] ?? "";
+            //var mongodbConnection = configuration.GetSection("MongoDbOptions:DefaultConnectString").Value;
+            healthChecks.AddMongoDb();
 
             return services;
         }
