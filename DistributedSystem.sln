@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36203.30
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 	ProjectSection(SolutionItems) = preProject
+		DistributedSystem.Api\.editorconfig = DistributedSystem.Api\.editorconfig
+		Directory.Build.props = Directory.Build.props
 		docker-compose.Dev.Infrastructure.yml = docker-compose.Dev.Infrastructure.yml
 	EndProjectSection
 EndProject
@@ -25,6 +27,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedSystem.Persistence", "DistributedSystem.Persistence\DistributedSystem.Persistence.csproj", "{F00F7145-CCB7-458B-924E-652EB2D69652}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedSystem.Presentation", "DistributedSystem.Presentation\DistributedSystem.Presentation.csproj", "{5CBF8483-84C9-4840-A01F-C078F25C2B52}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedSystem.Test", "DistributedSystem.Test\DistributedSystem.Test.csproj", "{9B32B960-C4A8-4AA3-970D-C589A77F6BA9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,6 +64,10 @@ Global
 		{5CBF8483-84C9-4840-A01F-C078F25C2B52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5CBF8483-84C9-4840-A01F-C078F25C2B52}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5CBF8483-84C9-4840-A01F-C078F25C2B52}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B32B960-C4A8-4AA3-970D-C589A77F6BA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B32B960-C4A8-4AA3-970D-C589A77F6BA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B32B960-C4A8-4AA3-970D-C589A77F6BA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B32B960-C4A8-4AA3-970D-C589A77F6BA9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -72,6 +80,7 @@ Global
 		{C0E484C5-0F5F-4ECF-A7F3-57B7C518EECB} = {177FFE9B-E58A-4BD6-A873-9BB9F245FBE6}
 		{F00F7145-CCB7-458B-924E-652EB2D69652} = {177FFE9B-E58A-4BD6-A873-9BB9F245FBE6}
 		{5CBF8483-84C9-4840-A01F-C078F25C2B52} = {177FFE9B-E58A-4BD6-A873-9BB9F245FBE6}
+		{9B32B960-C4A8-4AA3-970D-C589A77F6BA9} = {9E10E369-F8E5-44F8-B0D8-DF8757A2100B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D1699D87-71F4-47A9-945F-E4AD9F716BBD}

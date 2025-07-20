@@ -14,7 +14,7 @@ namespace DistributedSystem.Constract.Abstraction.Message
     {
     }
 
-        [ExcludeFromTopology]
+    [ExcludeFromTopology]
     public interface ICommand<TResponse> : IRequest<Result<TResponse>>
     {
 

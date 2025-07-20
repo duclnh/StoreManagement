@@ -12,6 +12,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DistributedSystem.Constract.Abstraction.Shared;
+using DistributedSystem.Constract.Enumerations;
+using DistributedSystem.Constract.Extensions;
 
 namespace DistributedSystem.Presentation.Apis.Products
 {
@@ -25,10 +27,10 @@ namespace DistributedSystem.Presentation.Apis.Products
                 .HasApiVersion(1)
                 .RequireAuthorization();
 
-            group1.MapPost(string.Empty,  CreateProductsV1);
-            group1.MapGet(string.Empty,  GetProductsV1);
+            group1.MapPost(string.Empty, CreateProductsV1);
+            group1.MapGet(string.Empty, GetProductsV1);
             group1.MapGet("{productId}", GetProductByIdV1);
-            group1.MapDelete("{productId}",DeleteProductV1);
+            group1.MapDelete("{productId}", DeleteProductV1);
             group1.MapPut("{productId}", UpdateProductsV1);
 
 
@@ -45,15 +47,25 @@ namespace DistributedSystem.Presentation.Apis.Products
         public static async Task<IResult> CreateProductsV1(ISender sender, [FromBody] CommandV1.Command.CreateProductCommand createProductCommand)
         {
             var result = await sender.Send(createProductCommand);
-            if(result.IsFailure)
+            if (result.IsFailure)
                 return HandlerFailure(result);
 
             return Results.Ok(result);
         }
 
-        public static async Task<IResult> GetProductsV1(ISender sender)
+        public static async Task<IResult> GetProductsV1(ISender sender, 
+            string? searchTerm = null,
+            string? sortColumn = null, 
+            string? sortOrder = null, 
+            string sortColumnAndOrder = null,
+            int pageIndex = 1,
+            int pageSize = 10)
         {
-            var result = await sender.Send(new CommandV1.Query.GetProductsQuery());
+
+            var result = await sender.Send(new CommandV1.Query.GetProductsQuery(searchTerm, sortColumn, SortOrderExtension.ConvertStringToSortOrder(sortOrder)
+                , SortOrderExtension.ConvertStringToSortOrderV2(sortColumnAndOrder),
+                pageIndex,
+                pageSize));
 
             return Results.Ok(result);
         }
@@ -75,14 +87,14 @@ namespace DistributedSystem.Presentation.Apis.Products
         }
 
 
-        public static async Task<IResult> UpdateProductsV1(ISender sender,[FromRoute] Guid productId, [FromBody] CommandV1.Command.UpdateProductCommand updateProductCommand)
+        public static async Task<IResult> UpdateProductsV1(ISender sender, [FromRoute] Guid productId, [FromBody] CommandV1.Command.UpdateProductCommand updateProductCommand)
         {
-                updateProductCommand = new CommandV1.Command.UpdateProductCommand(
-                    productId,
-                    updateProductCommand.Name,
-                    updateProductCommand.Price,
-                    updateProductCommand.Description
-                );
+            updateProductCommand = new CommandV1.Command.UpdateProductCommand(
+                productId,
+                updateProductCommand.Name,
+                updateProductCommand.Price,
+                updateProductCommand.Description
+            );
             var result = await sender.Send(updateProductCommand);
             if (result.IsFailure)
                 return HandlerFailure(result);
