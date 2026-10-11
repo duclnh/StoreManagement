@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server
+    container_name: mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=P@ssw0rd
+    restart: always
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/lib/mssql/
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_DEFAULT_VHOST: "duclnh"
+    volumes:
+      - rabbit_data:/var/lib/rabbitmq/data
+
+  redis:
+    container_name: redis
+    image: redis:8.2-m01-bookworm
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/var/lib/redis/data
+  mongodb:
+    container_name: mongo
+    image: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=mongopw
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_data:/var/lib/mongodb/data
+
+volumes:
+  mongo_data:
+  redis_data:
+  mssql_data:
+  rabbit_data:
