@@ -6,6 +6,7 @@ using Identity.Infrastructure.Caching;
 using Identity.Infrastructure.Consumers.Abstract.Repositories;
 using Identity.Infrastructure.Consumers.Repositories;
 using Identity.Infrastructure.DependencyInjections.Options;
+using Identity.Infrastructure.Email;
 using Identity.Infrastructure.PipeObservers;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
@@ -28,6 +29,8 @@ namespace Identity.Infrastructure.DependencyInjections.Extensions
         public static void ConfigurationServicesInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<MongoDbOptions>(configuration.GetSection(nameof(MongoDbOptions)));
+            services.Configure<IdentityEmailOptions>(configuration.GetSection(nameof(IdentityEmailOptions)));
+            services.AddTransient<IIdentityEmailSender, SmtpIdentityEmailSender>();
             
             services.AddSingleton<IMongoDbOptions>(serviceProvider =>
                 serviceProvider.GetRequiredService<IOptions<MongoDbOptions>>().Value

@@ -13,6 +13,7 @@ namespace Identity.Persistence.Configurations
 
             builder.HasKey(x => x.Id);
 
+            builder.Property(x => x.IsActive).HasDefaultValue(true);
             builder.Property(x => x.IsDirector).HasDefaultValue(false);
             builder.Property(x => x.IsHeadOfDepartment).HasDefaultValue(false);
             builder.Property(x => x.ManagerId).HasDefaultValue(null);

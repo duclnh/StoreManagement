@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Identity.Persistence.Repositories
 {
-    public class RepositoryBase<TEntity, TKey> : IRepositoryBase<TEntity, TKey>, IDisposable
+    public class RepositoryBase<TEntity, TKey> : IRepositoryBase<TEntity, TKey>
         where TEntity : Entity<TKey>
     {
         private readonly ApplicationDbContext _dbContext;
@@ -19,13 +19,6 @@ namespace Identity.Persistence.Repositories
         {
             _dbContext = dbContext;
         }
-        public void Dispose()
-        {
-            _dbContext?.Dispose();
-        }
-
-
-
         public IQueryable<TEntity> FindAll(Expression<Func<TEntity, bool>>? predicate = null, params Expression<Func<TEntity, object>>[] includes)
         {
             IQueryable<TEntity> items = _dbContext.Set<TEntity>().AsNoTracking();

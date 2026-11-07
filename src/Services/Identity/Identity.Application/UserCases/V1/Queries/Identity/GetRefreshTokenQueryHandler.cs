@@ -2,53 +2,87 @@
 using Identity.Contract.Abstraction.Message;
 using Identity.Contract.Abstraction.Shared;
 using Identity.Contract.Services.V1.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Identity.Domain.Abstractions;
+using Identity.Domain.Entities.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Identity.Application.UserCases.V1.Queries.Identity
 {
-    public class GetRefreshTokenQueryHandler : IQueryHandler<Query.Login, Response.Authenticated>
+    public class GetRefreshTokenQueryHandler : IQueryHandler<Query.RefreshToken, Response.Authenticated>
     {
         private readonly IJwtTokenService _jwtTokenService;
-        private readonly ICacheService _cacheService;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public GetRefreshTokenQueryHandler(IJwtTokenService jwtTokenService, ICacheService cacheService)
+        public GetRefreshTokenQueryHandler(
+            IJwtTokenService jwtTokenService,
+            UserManager<AppUser> userManager,
+            IUnitOfWork unitOfWork)
         {
             _jwtTokenService = jwtTokenService;
-            _cacheService = cacheService;
+            _userManager = userManager;
+            _unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<Response.Authenticated>> Handle(Query.Login request, CancellationToken cancellationToken)
+        public async Task<Result<Response.Authenticated>> Handle(Query.RefreshToken request, CancellationToken cancellationToken)
         {
-            //check user
+            var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+            if (user is null)
+                return InvalidRefreshToken();
 
+            var session = await _unitOfWork.LoginSessionRepository.FindByIdAsync(request.SessionId, cancellationToken);
+            var now = DateTimeOffset.UtcNow;
+            if (session is null
+                || session.UserId != user.Id
+                || session.IsRevoked
+                || session.ExpiresAtUtc <= now)
+                return InvalidRefreshToken();
 
-            //generate JwtToken
+            var suppliedHash = Encoding.ASCII.GetBytes(GetLoginQueryHandler.HashToken(request.Token));
+            var storedHash = Encoding.ASCII.GetBytes(session.RefreshTokenHash);
+            if (storedHash.Length != suppliedHash.Length || !CryptographicOperations.FixedTimeEquals(storedHash, suppliedHash))
+                return InvalidRefreshToken();
 
-            var claims = new List<Claim> { 
-                new Claim(ClaimTypes.Email, request.Email),
-                new Claim(ClaimTypes.Role, "Senior .NET leader")
-            };
-                
-            var accessToken = _jwtTokenService.GenerateAccessToken(claims);
             var refreshToken = _jwtTokenService.GenerateRefreshToken();
-
-            var response = new Response.Authenticated()
+            var refreshTokenExpiry = now.AddDays(30);
+            session.Rotate(GetLoginQueryHandler.HashToken(refreshToken), refreshTokenExpiry, now);
+            _unitOfWork.LoginSessionRepository.Update(session);
+            try
             {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                RefreshTokenExpiryTime = DateTime.Now.AddMinutes(5)
+                await _unitOfWork.SaveChangeAsync(cancellationToken);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return InvalidRefreshToken();
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new(ClaimTypes.Email, user.Email ?? string.Empty),
+                new(ClaimTypes.Sid, request.SessionId.ToString())
             };
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-            await _cacheService.SetAsync("lengochuynduc8@gmail.com", response);
-
+            var response = new Response.Authenticated
+            {
+                UserId = user.Id,
+                SessionId = request.SessionId,
+                AccessToken = _jwtTokenService.GenerateAccessToken(claims),
+                RefreshToken = refreshToken,
+                RefreshTokenExpiryTime = refreshTokenExpiry.UtcDateTime
+            };
 
             return Result.Success(response);
         }
+
+        private static Result<Response.Authenticated> InvalidRefreshToken() =>
+            Result.Failure<Response.Authenticated>(new Error("Identity.Authentication.InvalidRefreshToken", "The refresh token is invalid or expired."));
     }
 }
 

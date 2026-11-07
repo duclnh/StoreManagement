@@ -23,6 +23,7 @@ namespace Identity.Persistence.Constants
         internal const string AppUserTokens = nameof(AppUserTokens);
 
         internal const string OutboxMessages = nameof(OutboxMessages);
+        internal const string LoginSessions = nameof(LoginSessions);
     }
 }
 

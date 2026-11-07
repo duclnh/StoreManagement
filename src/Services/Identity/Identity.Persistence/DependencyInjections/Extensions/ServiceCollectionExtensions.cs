@@ -47,6 +47,7 @@ namespace Identity.Persistence.DependencyInjections.Extensions
                 opt.Lockout.MaxFailedAccessAttempts = 3;// default 5
             })
                 .AddRoles<AppRole>()
+                .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.Configure<IdentityOptions>(options =>
@@ -57,8 +58,9 @@ namespace Identity.Persistence.DependencyInjections.Extensions
                 options.Password.RequireDigit = false;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
-                options.Password.RequiredLength = 6;
+                options.Password.RequiredLength = 8;
                 options.Password.RequiredUniqueChars = 1;
+                options.Password.RequireDigit = true;
             });
         }
 
@@ -72,6 +74,7 @@ namespace Identity.Persistence.DependencyInjections.Extensions
         {
             services.AddTransient(typeof(IUnitOfWork), typeof(EFUnitOfWork));
             services.AddTransient(typeof(IRepositoryBase<,>), typeof(RepositoryBase<,>));
+            services.AddTransient<IAppUserRepository, AppUserRepository>();
         }
 
         public static OptionsBuilder<SqlServerRetryOptions> ConfigureSqlServerRetryOptionsPersistence(this IServiceCollection services, IConfigurationSection section)

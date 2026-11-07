@@ -71,6 +71,8 @@ builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
 var app = builder.Build();
 
+await app.SeedAdministratorFromEnvironmentAsync();
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.MapCarter();
 

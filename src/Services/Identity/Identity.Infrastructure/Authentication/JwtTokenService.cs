@@ -31,7 +31,7 @@ namespace Identity.Infrastructure.Authentication
                 issuer: _jwtOption.Issuer,
                 audience: _jwtOption.Audience,
                 claims: claims, 
-                expires: DateTime.Now.AddMinutes(_jwtOption.ExpiredIn),
+                expires: DateTime.UtcNow.AddMinutes(_jwtOption.ExpiredIn),
                 signingCredentials: signinCredentials
             );
 

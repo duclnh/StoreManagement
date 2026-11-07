@@ -1,6 +1,8 @@
 ﻿using Identity.Infrastructure.DependencyInjections.Options;
+using Identity.Domain.Abstractions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 
 namespace Identity.Api.DependencyInjection.Extensions
@@ -26,8 +28,8 @@ namespace Identity.Api.DependencyInjection.Extensions
 
                 o.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwtOption.Issuer,
@@ -38,11 +40,33 @@ namespace Identity.Api.DependencyInjection.Extensions
 
                 o.Events = new JwtBearerEvents
                 {
+                    OnTokenValidated = async context =>
+                    {
+                        var userIdValue = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+                        var sessionIdValue = context.Principal?.FindFirstValue(ClaimTypes.Sid);
+                        if (!Guid.TryParse(userIdValue, out var userId)
+                            || !Guid.TryParse(sessionIdValue, out var sessionId))
+                        {
+                            context.Fail("The token does not identify a valid login session.");
+                            return;
+                        }
+
+                        var unitOfWork = context.HttpContext.RequestServices.GetRequiredService<IUnitOfWork>();
+                        var session = await unitOfWork.LoginSessionRepository.FindByIdAsync(
+                            sessionId,
+                            context.HttpContext.RequestAborted);
+
+                        if (session is null
+                            || session.UserId != userId
+                            || session.IsRevoked
+                            || session.ExpiresAtUtc <= DateTimeOffset.UtcNow)
+                            context.Fail("The login session has been revoked.");
+                    },
                     OnAuthenticationFailed = context =>
                     {
                         if(context.Exception.GetType() == typeof(SecurityTokenExpiredException))
                         {
-                            context.Response.Headers.Add("IS-TOKEN-EXPIRED", "true");
+                            context.Response.Headers["IS-TOKEN-EXPIRED"] = "true";
                         }
                         return Task.CompletedTask;
                     }
@@ -50,7 +74,10 @@ namespace Identity.Api.DependencyInjection.Extensions
             });
 
 
-            services.AddAuthorization();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("IdentityAdmin", policy => policy.RequireRole("Administrator"));
+            });
         }
     }
 }

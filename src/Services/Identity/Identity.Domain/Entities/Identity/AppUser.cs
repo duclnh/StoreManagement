@@ -4,6 +4,7 @@ namespace Identity.Domain.Entities.Identity
 {
     public class AppUser : IdentityUser<Guid>
     {
+        public bool IsActive { get; set; } = true;
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string FullName { get; set; }

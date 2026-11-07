@@ -1,5 +1,7 @@
 ﻿using Identity.Domain.Abstractions;
 using Identity.Domain.Abstractions.Entities;
+using Identity.Domain.Entities.Identity;
+using Identity.Domain.Repositories;
 using Identity.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -16,10 +18,18 @@ namespace Identity.Persistence
     {
         private readonly ApplicationDbContext _dbContext;
 
-        public EFUnitOfWork(ApplicationDbContext dbContext)
+        public EFUnitOfWork(
+            ApplicationDbContext dbContext,
+            IRepositoryBase<LoginSession, Guid> loginSessionRepository,
+            IAppUserRepository appUserRepository)
         {
             _dbContext = dbContext;
+            LoginSessionRepository = loginSessionRepository;
+            AppUserRepository = appUserRepository;
         }
+
+        public IAppUserRepository AppUserRepository { get; }
+        public IRepositoryBase<LoginSession, Guid> LoginSessionRepository { get; }
 
         public async ValueTask DisposeAsync()
         {
@@ -30,7 +40,7 @@ namespace Identity.Persistence
         {
             //ConvertDomainEventsToOutBoxMessages();
             UpdateAuditableEntities();
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellation);
         }
 
         private void UpdateAuditableEntities()

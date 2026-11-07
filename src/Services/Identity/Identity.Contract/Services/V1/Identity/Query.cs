@@ -7,10 +7,19 @@ namespace Identity.Contract.Services.V1.Identity
 {
     public static class Query
     {
-        public record Login(string Email, string Password) : IQuery<Authenticated>;
-        public record Token(string? AccessToken, string? RefreshToken) : IQuery<Authenticated>;
-        public record RefreshToken() : IQuery<Authenticated>;
-        public record RevokeToken() : IQuery<Unit>;
+        public record Login(
+            string Email,
+            string Password,
+            string? UserAgent = null,
+            string? IpAddress = null,
+            string? TwoFactorCode = null) : IQuery<Authenticated>;
+        public record RefreshToken(Guid UserId, Guid SessionId, string Token) : IQuery<Authenticated>;
+        public record RevokeToken(Guid UserId, Guid SessionId) : IQuery<Unit>;
+        public record ListSessions(Guid UserId, Guid CurrentSessionId) : IQuery<List<LoginSession>>;
+        public record RevokeOtherSessions(Guid UserId, Guid CurrentSessionId) : IQuery<int>;
+        public record GetUsers(string? Search, int Page = 1, int PageSize = 25) : IQuery<Response.UserPage>;
+        public record GetUser(Guid UserId) : IQuery<Response.AdminUser>;
+        public record GetRoles() : IQuery<List<Response.AdminRole>>;
     }
 }
 

@@ -22,6 +22,7 @@ namespace Identity.Persistence
         public DbSet<ActionInFunction> ActionInFunctions { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
+        public DbSet<LoginSession> LoginSessions { get; set; }
 
     }
 }
