@@ -1,5 +1,6 @@
 using Identity.Contract.Abstraction.Message;
 using Identity.Contract.Abstraction.Shared;
+using Identity.Domain.Abstractions;
 using Identity.Domain.Entities.Identity;
 using Microsoft.AspNetCore.Identity;
 using static Identity.Contract.Services.V1.Identity.Command;
@@ -9,10 +10,12 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
     public sealed class DisableTwoFactorCommandHandler : ICommandHandler<DisableTwoFactor, bool>
     {
         private readonly UserManager<AppUser> _userManager;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public DisableTwoFactorCommandHandler(UserManager<AppUser> userManager)
+        public DisableTwoFactorCommandHandler(UserManager<AppUser> userManager, IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<bool>> Handle(DisableTwoFactor request, CancellationToken cancellationToken)
@@ -36,6 +39,11 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
                 return Result.Failure<bool>(new Error("Identity.TwoFactor.DisableFailed", "Could not disable two-factor authentication."));
 
             await _userManager.ResetAuthenticatorKeyAsync(user);
+            _unitOfWork.SecurityAuditRepository.Record(
+                SecurityAuditEventTypes.TwoFactorDisabled,
+                SecurityAuditOutcomes.Succeeded,
+                user.Id);
+            await _unitOfWork.SaveChangeAsync(cancellationToken);
             return Result.Success(true);
         }
     }

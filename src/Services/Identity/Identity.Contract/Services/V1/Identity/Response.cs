@@ -47,6 +47,31 @@
             string RoleCode,
             string Description,
             int UserCount);
+
+        public sealed record IdentityScope(Guid Id, string Name, int ScopeType, Guid? ParentId);
+
+        public sealed record RolePermission(
+            string FunctionId,
+            string FunctionName,
+            string ActionId,
+            string ActionName,
+            bool IsGranted);
+
+        public sealed record SecurityAuditEvent(
+            Guid Id,
+            string EventType,
+            string Outcome,
+            DateTimeOffset OccurredAtUtc,
+            Guid? ActorUserId,
+            Guid? SubjectUserId,
+            Guid? SessionId,
+            string? IpAddress,
+            string? Details);
+
+        public sealed record SecurityAuditPage(
+            IReadOnlyList<SecurityAuditEvent> Items,
+            int Page,
+            int PageSize,
+            int TotalCount);
     }
 }
-

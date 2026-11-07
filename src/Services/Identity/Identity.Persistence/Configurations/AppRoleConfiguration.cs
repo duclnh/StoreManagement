@@ -12,6 +12,12 @@ namespace Identity.Persistence.Configurations
             builder.ToTable(TableNames.AppRoles);
 
             builder.HasKey(x => x.Id);
+            builder.Property(x => x.TenantId).IsRequired();
+            builder.HasOne<Tenant>()
+                .WithMany()
+                .HasForeignKey(x => x.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasIndex(x => x.TenantId);
 
             builder.Property(x => x.Description)
                 .HasMaxLength(250).IsRequired(true);
@@ -38,4 +44,3 @@ namespace Identity.Persistence.Configurations
         }
     }
 }
-

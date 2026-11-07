@@ -32,6 +32,18 @@ export async function registerUser(input: RegisterUserRequest) {
 export const changePassword = (input: ChangePasswordRequest) =>
   post("auths/password/change", input);
 
+export const requestPasswordReset = (email: string) =>
+  post("auths/password/forgot", { email });
+
+export const resetPassword = (input: { email: string; token: string; newPassword: string }) =>
+  post("auths/password/reset", input);
+
+export const requestEmailConfirmation = (email: string) =>
+  post("auths/email/confirmation/request", { email });
+
+export const confirmEmail = (input: { email: string; token: string }) =>
+  post("auths/email/confirm", input);
+
 export function getAuthenticatorSetup() {
   return identityRequest<unknown>("auths/2fa/setup").then(readAuthenticatorSetup);
 }

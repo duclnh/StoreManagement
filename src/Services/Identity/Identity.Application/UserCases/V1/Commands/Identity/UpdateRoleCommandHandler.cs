@@ -13,21 +13,27 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
         private readonly RoleManager<AppRole> _roleManager;
         private readonly UserManager<AppUser> _userManager;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IIdentityTenantContext _tenantContext;
 
         public UpdateRoleCommandHandler(
             RoleManager<AppRole> roleManager,
             UserManager<AppUser> userManager,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IIdentityTenantContext tenantContext)
         {
             _roleManager = roleManager;
             _userManager = userManager;
             _unitOfWork = unitOfWork;
+            _tenantContext = tenantContext;
         }
 
         public async Task<Result<bool>> Handle(UpdateRole request, CancellationToken cancellationToken)
         {
+            if (_tenantContext.TenantId is not Guid tenantId)
+                return Result.Failure<bool>(new Error("Identity.Tenant.Required", "A tenant context is required."));
+
             var role = await _roleManager.FindByIdAsync(request.RoleId.ToString());
-            if (role is null)
+            if (role is null || role.TenantId != tenantId)
                 return Result.Failure<bool>(new Error("Identity.Role.NotFound", "The role was not found."));
 
             var existingRole = await _roleManager.FindByNameAsync(request.Name.Trim());
@@ -54,6 +60,11 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
             foreach (var user in assignedUsers)
                 await RefreshTokenRevoker.RevokeAllAsync(_unitOfWork, user.Id, cancellationToken);
 
+            _unitOfWork.SecurityAuditRepository.Record(
+                SecurityAuditEventTypes.RoleUpdated,
+                SecurityAuditOutcomes.Succeeded,
+                details: $"Role:{role.Id}");
+            await _unitOfWork.SaveChangeAsync(cancellationToken);
             return Result.Success(true);
         }
     }

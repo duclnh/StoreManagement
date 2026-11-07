@@ -23,7 +23,11 @@ namespace Identity.Persistence
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
         public DbSet<LoginSession> LoginSessions { get; set; }
+        public DbSet<SecurityAuditEvent> SecurityAuditEvents { get; set; }
+        public DbSet<Tenant> Tenants { get; set; }
+        public DbSet<Organization> Organizations { get; set; }
+        public DbSet<Branch> Branches { get; set; }
+        public DbSet<UserRoleAssignment> UserRoleAssignments { get; set; }
 
     }
 }
-

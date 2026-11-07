@@ -10,7 +10,9 @@ export type { AccountSecurityProps } from "./account-security";
 export type { AdminConsoleProps } from "./admin-console";
 export type { LoginScreenProps } from "./login-screen";
 export type { LoginSession, Session } from "./session";
-export type { Role, RoleDraft, SaveRoleRequest } from "./role";
+export type { SecurityAuditEvent, SecurityAuditPage } from "./security-audit";
+export type { Role, RoleDraft, RolePermission, SaveRoleRequest, SetRolePermissionsRequest } from "./role";
+export type { IdentityScope } from "./role";
 export type {
   NewUserDraft,
   UpdateUserRequest,

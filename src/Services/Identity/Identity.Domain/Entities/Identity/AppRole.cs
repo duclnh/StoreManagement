@@ -4,6 +4,7 @@ namespace Identity.Domain.Entities.Identity
 {
     public class AppRole : IdentityRole<Guid>
     {
+        public Guid TenantId { get; set; }
         public string Description { get; set; }
         public string RoleCode { get; set; }
         public virtual ICollection<IdentityUserRole<Guid>> UserRoles { get; set; }
@@ -12,4 +13,3 @@ namespace Identity.Domain.Entities.Identity
 
     }
 }
-

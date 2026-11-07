@@ -72,6 +72,7 @@ builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 var app = builder.Build();
 
 await app.SeedAdministratorFromEnvironmentAsync();
+await app.SeedIdentityPermissionCatalogAsync();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.MapCarter();
@@ -112,4 +113,3 @@ finally
 }
 
 public partial class Program { }
-

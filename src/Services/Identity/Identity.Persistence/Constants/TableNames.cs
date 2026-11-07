@@ -24,6 +24,10 @@ namespace Identity.Persistence.Constants
 
         internal const string OutboxMessages = nameof(OutboxMessages);
         internal const string LoginSessions = nameof(LoginSessions);
+        internal const string SecurityAuditEvents = nameof(SecurityAuditEvents);
+        internal const string Tenants = nameof(Tenants);
+        internal const string Organizations = nameof(Organizations);
+        internal const string Branches = nameof(Branches);
+        internal const string UserRoleAssignments = nameof(UserRoleAssignments);
     }
 }
-

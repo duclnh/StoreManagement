@@ -16,10 +16,12 @@ namespace Identity.Persistence.Configurations
             {
                 x.RoleId,
                 x.FunctionId,
-                x.ActionId
+                x.ActionId,
+                x.ScopeType,
+                x.ScopeId
             });
+            builder.HasIndex(x => new { x.ScopeType, x.ScopeId });
 
         }
     }
 }
-

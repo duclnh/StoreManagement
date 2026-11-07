@@ -12,6 +12,12 @@ namespace Identity.Persistence.Configurations
             builder.ToTable(TableNames.AppUsers);
 
             builder.HasKey(x => x.Id);
+            builder.Property(x => x.TenantId).IsRequired();
+            builder.HasOne(x => x.Tenant)
+                .WithMany()
+                .HasForeignKey(x => x.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasIndex(x => x.TenantId);
 
             builder.Property(x => x.IsActive).HasDefaultValue(true);
             builder.Property(x => x.IsDirector).HasDefaultValue(false);
@@ -41,4 +47,3 @@ namespace Identity.Persistence.Configurations
         }
     }
 }
-

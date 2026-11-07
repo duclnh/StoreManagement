@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
-export type WorkspaceView = "users" | "roles" | "sessions" | "security";
+export type WorkspaceView = "users" | "roles" | "sessions" | "security" | "audit";
 
 interface WorkspaceViewContextValue {
   view: WorkspaceView;

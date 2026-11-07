@@ -4,7 +4,12 @@ namespace Identity.Domain.Repositories
 {
     public interface IAppUserRepository
     {
-        Task<int> CountAsync(string? search, CancellationToken cancellationToken = default);
-        Task<List<AppUser>> GetPageAsync(string? search, int skip, int take, CancellationToken cancellationToken = default);
+        Task<int> CountAsync(Guid tenantId, string? search, CancellationToken cancellationToken = default);
+        Task<List<AppUser>> GetPageAsync(
+            Guid tenantId,
+            string? search,
+            int skip,
+            int take,
+            CancellationToken cancellationToken = default);
     }
 }

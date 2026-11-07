@@ -12,18 +12,27 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<AppUser> _userManager;
+        private readonly IIdentityTenantContext _tenantContext;
 
-        public GetUsersQueryHandler(IUnitOfWork unitOfWork, UserManager<AppUser> userManager)
+        public GetUsersQueryHandler(
+            IUnitOfWork unitOfWork,
+            UserManager<AppUser> userManager,
+            IIdentityTenantContext tenantContext)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
+            _tenantContext = tenantContext;
         }
 
         public async Task<Result<Response.UserPage>> Handle(GetUsers request, CancellationToken cancellationToken)
         {
+            if (_tenantContext.TenantId is not Guid tenantId)
+                return Result.Failure<Response.UserPage>(new Error("Identity.Tenant.Required", "A tenant context is required."));
+
             var search = string.IsNullOrWhiteSpace(request.Search) ? null : request.Search.Trim();
-            var totalCount = await _unitOfWork.AppUserRepository.CountAsync(search, cancellationToken);
+            var totalCount = await _unitOfWork.AppUserRepository.CountAsync(tenantId, search, cancellationToken);
             var users = await _unitOfWork.AppUserRepository.GetPageAsync(
+                tenantId,
                 search,
                 (request.Page - 1) * request.PageSize,
                 request.PageSize,

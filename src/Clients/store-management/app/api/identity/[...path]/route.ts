@@ -105,6 +105,35 @@ async function handle(request: Request, context: RouteContext) {
     if (!origin || origin !== url.origin) return Response.json({ error: "Invalid request origin." }, { status: 403 });
   }
 
+  if (
+    request.method === "POST"
+    && new Set([
+      "auths/password/forgot",
+      "auths/password/reset",
+      "auths/register",
+      "auths/email/confirmation/request",
+      "auths/email/confirm",
+    ]).has(resourcePath)
+  ) {
+    try {
+      const upstream = await fetch(`${identityApi}/api/v1/${resourcePath}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": request.headers.get("content-type") ?? "application/json",
+          Accept: request.headers.get("accept") ?? "application/json",
+        },
+        body: await request.text(),
+        cache: "no-store",
+      });
+      return new Response(upstream.body, {
+        status: upstream.status,
+        headers: { "Content-Type": upstream.headers.get("content-type") ?? "application/json" },
+      });
+    } catch {
+      return Response.json({ error: "Identity API is unavailable." }, { status: 502 });
+    }
+  }
+
   if (request.method === "POST" && resourcePath === "auths/login") {
     const body = await request.text();
     const email = (() => {

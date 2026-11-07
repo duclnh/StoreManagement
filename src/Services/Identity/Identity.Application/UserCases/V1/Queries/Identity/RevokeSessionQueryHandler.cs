@@ -24,6 +24,12 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
 
             session.Revoke(DateTimeOffset.UtcNow);
             _unitOfWork.LoginSessionRepository.Update(session);
+            _unitOfWork.SecurityAuditRepository.Record(
+                SecurityAuditEventTypes.Logout,
+                SecurityAuditOutcomes.Succeeded,
+                session.UserId,
+                "SingleSession",
+                session.Id);
             await _unitOfWork.SaveChangeAsync(cancellationToken);
 
             return Result.Success(Unit.Value);

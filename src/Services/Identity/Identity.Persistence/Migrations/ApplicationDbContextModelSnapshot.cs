@@ -89,7 +89,12 @@ namespace Identity.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("AppRoles", (string)null);
                 });
@@ -177,6 +182,9 @@ namespace Identity.Persistence.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -185,7 +193,34 @@ namespace Identity.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TenantId");
+
                     b.ToTable("AppUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Identity.Domain.Entities.Identity.Branch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("Branches", (string)null);
                 });
 
             modelBuilder.Entity("Identity.Domain.Entities.Identity.Function", b =>
@@ -280,6 +315,31 @@ namespace Identity.Persistence.Migrations
                     b.ToTable("LoginSessions", (string)null);
                 });
 
+            modelBuilder.Entity("Identity.Domain.Entities.Identity.Organization", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("Organizations", (string)null);
+                });
+
             modelBuilder.Entity("Identity.Domain.Entities.Identity.Permission", b =>
                 {
                     b.Property<Guid>("RoleId")
@@ -291,13 +351,121 @@ namespace Identity.Persistence.Migrations
                     b.Property<string>("ActionId")
                         .HasColumnType("nvarchar(50)");
 
-                    b.HasKey("RoleId", "FunctionId", "ActionId");
+                    b.Property<int>("ScopeType")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ScopeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("RoleId", "FunctionId", "ActionId", "ScopeType", "ScopeId");
 
                     b.HasIndex("ActionId");
 
                     b.HasIndex("FunctionId");
 
+                    b.HasIndex("ScopeType", "ScopeId");
+
                     b.ToTable("Permissions", (string)null);
+                });
+
+            modelBuilder.Entity("Identity.Domain.Entities.Identity.SecurityAuditEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ActorUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<DateTimeOffset>("OccurredAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<Guid?>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("SubjectUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurredAtUtc");
+
+                    b.HasIndex("ActorUserId", "OccurredAtUtc");
+
+                    b.HasIndex("EventType", "OccurredAtUtc");
+
+                    b.HasIndex("SubjectUserId", "OccurredAtUtc");
+
+                    b.HasIndex("TenantId", "OccurredAtUtc");
+
+                    b.ToTable("SecurityAuditEvents", (string)null);
+                });
+
+            modelBuilder.Entity("Identity.Domain.Entities.Identity.Tenant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Tenants", (string)null);
+                });
+
+            modelBuilder.Entity("Identity.Domain.Entities.Identity.UserRoleAssignment", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ScopeType")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ScopeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UserId", "RoleId", "ScopeType", "ScopeId");
+
+                    b.HasIndex("RoleId", "ScopeType", "ScopeId");
+
+                    b.ToTable("UserRoleAssignments", (string)null);
                 });
 
             modelBuilder.Entity("Identity.Persistence.Outbox.OutboxMessage", b =>
@@ -448,6 +616,37 @@ namespace Identity.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Identity.Domain.Entities.Identity.AppRole", b =>
+                {
+                    b.HasOne("Identity.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Identity.Domain.Entities.Identity.AppUser", b =>
+                {
+                    b.HasOne("Identity.Domain.Entities.Identity.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("Identity.Domain.Entities.Identity.Branch", b =>
+                {
+                    b.HasOne("Identity.Domain.Entities.Identity.Organization", "Organization")
+                        .WithMany("Branches")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("Identity.Domain.Entities.Identity.LoginSession", b =>
                 {
                     b.HasOne("Identity.Domain.Entities.Identity.AppUser", null)
@@ -455,6 +654,17 @@ namespace Identity.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Identity.Domain.Entities.Identity.Organization", b =>
+                {
+                    b.HasOne("Identity.Domain.Entities.Identity.Tenant", "Tenant")
+                        .WithMany("Organizations")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("Identity.Domain.Entities.Identity.Permission", b =>
@@ -476,6 +686,25 @@ namespace Identity.Persistence.Migrations
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Identity.Domain.Entities.Identity.UserRoleAssignment", b =>
+                {
+                    b.HasOne("Identity.Domain.Entities.Identity.AppRole", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Identity.Domain.Entities.Identity.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -561,6 +790,16 @@ namespace Identity.Persistence.Migrations
                     b.Navigation("ActionInFunctions");
 
                     b.Navigation("Permissions");
+                });
+
+            modelBuilder.Entity("Identity.Domain.Entities.Identity.Organization", b =>
+                {
+                    b.Navigation("Branches");
+                });
+
+            modelBuilder.Entity("Identity.Domain.Entities.Identity.Tenant", b =>
+                {
+                    b.Navigation("Organizations");
                 });
 #pragma warning restore 612, 618
         }

@@ -12,6 +12,9 @@ namespace Identity.Domain.Abstractions
     {
         IAppUserRepository AppUserRepository { get; }
         IRepositoryBase<LoginSession, Guid> LoginSessionRepository { get; }
+        IRolePermissionRepository RolePermissionRepository { get; }
+        ISecurityAuditRepository SecurityAuditRepository { get; }
+        IUserRoleAssignmentRepository UserRoleAssignmentRepository { get; }
 
         ///<summary>
         /// Call save change from db context
@@ -19,4 +22,3 @@ namespace Identity.Domain.Abstractions
         Task SaveChangeAsync(CancellationToken cancellation = default);
     }
 }
-

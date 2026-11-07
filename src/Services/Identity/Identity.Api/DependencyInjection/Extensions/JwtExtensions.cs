@@ -1,6 +1,8 @@
 ﻿using Identity.Infrastructure.DependencyInjections.Options;
 using Identity.Domain.Abstractions;
+using Identity.Api.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
@@ -11,6 +13,7 @@ namespace Identity.Api.DependencyInjection.Extensions
     {
         public static void AddJwtAuthenticationApplication(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddHttpContextAccessor();
             services.AddAuthentication(
                 options =>
                 {
@@ -78,7 +81,7 @@ namespace Identity.Api.DependencyInjection.Extensions
             {
                 options.AddPolicy("IdentityAdmin", policy => policy.RequireRole("Administrator"));
             });
+            services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
         }
     }
 }
-

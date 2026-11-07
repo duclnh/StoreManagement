@@ -13,23 +13,24 @@ namespace Identity.Persistence.Repositories
             _dbContext = dbContext;
         }
 
-        public Task<int> CountAsync(string? search, CancellationToken cancellationToken = default) =>
-            Filter(search).CountAsync(cancellationToken);
+        public Task<int> CountAsync(Guid tenantId, string? search, CancellationToken cancellationToken = default) =>
+            Filter(tenantId, search).CountAsync(cancellationToken);
 
         public Task<List<AppUser>> GetPageAsync(
+            Guid tenantId,
             string? search,
             int skip,
             int take,
             CancellationToken cancellationToken = default) =>
-            Filter(search)
+            Filter(tenantId, search)
                 .OrderBy(user => user.Email)
                 .Skip(skip)
                 .Take(take)
                 .ToListAsync(cancellationToken);
 
-        private IQueryable<AppUser> Filter(string? search)
+        private IQueryable<AppUser> Filter(Guid tenantId, string? search)
         {
-            var query = _dbContext.AppUsers.AsNoTracking();
+            var query = _dbContext.AppUsers.AsNoTracking().Where(user => user.TenantId == tenantId);
             if (string.IsNullOrWhiteSpace(search))
                 return query;
 

@@ -21,15 +21,24 @@ namespace Identity.Persistence
         public EFUnitOfWork(
             ApplicationDbContext dbContext,
             IRepositoryBase<LoginSession, Guid> loginSessionRepository,
-            IAppUserRepository appUserRepository)
+            IAppUserRepository appUserRepository,
+            IRolePermissionRepository rolePermissionRepository,
+            ISecurityAuditRepository securityAuditRepository,
+            IUserRoleAssignmentRepository userRoleAssignmentRepository)
         {
             _dbContext = dbContext;
             LoginSessionRepository = loginSessionRepository;
             AppUserRepository = appUserRepository;
+            RolePermissionRepository = rolePermissionRepository;
+            SecurityAuditRepository = securityAuditRepository;
+            UserRoleAssignmentRepository = userRoleAssignmentRepository;
         }
 
         public IAppUserRepository AppUserRepository { get; }
         public IRepositoryBase<LoginSession, Guid> LoginSessionRepository { get; }
+        public IRolePermissionRepository RolePermissionRepository { get; }
+        public ISecurityAuditRepository SecurityAuditRepository { get; }
+        public IUserRoleAssignmentRepository UserRoleAssignmentRepository { get; }
 
         public async ValueTask DisposeAsync()
         {
@@ -89,4 +98,3 @@ namespace Identity.Persistence
         }
     }
 }
-

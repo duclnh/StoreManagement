@@ -23,8 +23,11 @@ export function listUsers(search: string, page: number, pageSize = 25) {
 export const updateUser = (userId: string, input: UpdateUserRequest) =>
   put(`admin/users/${encodeURIComponent(userId)}`, input);
 
-export const updateUserRoles = (userId: string, input: UserRolesRequest) =>
-  put(`admin/users/${encodeURIComponent(userId)}/roles`, input);
+export const listUserRoles = (userId: string, scopeId: string) =>
+  get<string[]>(`admin/users/${encodeURIComponent(userId)}/roles?${new URLSearchParams({ scopeId })}`);
+
+export const updateUserRoles = (userId: string, scopeId: string, input: UserRolesRequest) =>
+  put(`admin/users/${encodeURIComponent(userId)}/roles?${new URLSearchParams({ scopeId })}`, input);
 
 export const updateUserStatus = (userId: string, input: UpdateUserStatusRequest) =>
   patch(`admin/users/${encodeURIComponent(userId)}/status`, input);

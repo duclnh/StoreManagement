@@ -72,6 +72,9 @@ function CredentialsForm({
         {...register("password")}
       />
       {passwordError && <p id="login-password-error" className="form-field-error" role="alert">{passwordError}</p>}
+      <Link className="login-forgot-link" href="/forgot-password">{t("forgotPassword")}</Link>
+      <p className="login-confirmation-link">{t("noAccount")} <Link href="/register">{t("registerLink")}</Link></p>
+      <p className="login-confirmation-link">{t("confirmationHelp")} <Link href="/confirm-email">{t("confirmationResendLink")}</Link></p>
       {notice && <p className="login-notice" role="status">{notice}</p>}
       {error && <p className="form-error" role="alert">{error}</p>}
       <button className="primary-button full-button" disabled={busy}>

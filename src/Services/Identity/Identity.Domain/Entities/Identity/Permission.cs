@@ -5,6 +5,7 @@
         public Guid RoleId { get; set; }
         public string FunctionId { get; set; } = string.Empty;
         public string ActionId { get; set; } = string.Empty;
+        public IdentityScopeType ScopeType { get; set; }
+        public Guid ScopeId { get; set; }
     }
 }
-

@@ -65,7 +65,8 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
             {
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Email, user.Email ?? string.Empty),
-                new(ClaimTypes.Sid, request.SessionId.ToString())
+                new(ClaimTypes.Sid, request.SessionId.ToString()),
+                new(IdentityClaimTypes.TenantId, user.TenantId.ToString())
             };
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
@@ -85,5 +86,4 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
             Result.Failure<Response.Authenticated>(new Error("Identity.Authentication.InvalidRefreshToken", "The refresh token is invalid or expired."));
     }
 }
-
 

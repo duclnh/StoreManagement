@@ -12,17 +12,25 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
         private const string AdministratorRole = "Administrator";
         private readonly UserManager<AppUser> _userManager;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IIdentityTenantContext _tenantContext;
 
-        public SetUserActiveCommandHandler(UserManager<AppUser> userManager, IUnitOfWork unitOfWork)
+        public SetUserActiveCommandHandler(
+            UserManager<AppUser> userManager,
+            IUnitOfWork unitOfWork,
+            IIdentityTenantContext tenantContext)
         {
             _userManager = userManager;
             _unitOfWork = unitOfWork;
+            _tenantContext = tenantContext;
         }
 
         public async Task<Result<bool>> Handle(SetUserActive request, CancellationToken cancellationToken)
         {
+            if (_tenantContext.TenantId is not Guid tenantId)
+                return Result.Failure<bool>(new Error("Identity.Tenant.Required", "A tenant context is required."));
+
             var user = await _userManager.FindByIdAsync(request.UserId.ToString());
-            if (user is null)
+            if (user is null || user.TenantId != tenantId)
                 return Result.Failure<bool>(new Error("Identity.User.NotFound", "The user was not found."));
 
             if (!request.IsActive && request.ActorId == user.Id)
@@ -43,6 +51,12 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
             if (!request.IsActive)
                 await RefreshTokenRevoker.RevokeAllAsync(_unitOfWork, user.Id, cancellationToken);
 
+            _unitOfWork.SecurityAuditRepository.Record(
+                SecurityAuditEventTypes.UserStatusChanged,
+                SecurityAuditOutcomes.Succeeded,
+                user.Id,
+                request.IsActive ? "Activated" : "Deactivated");
+            await _unitOfWork.SaveChangeAsync(cancellationToken);
             return Result.Success(true);
         }
     }

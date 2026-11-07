@@ -4,6 +4,8 @@ namespace Identity.Domain.Entities.Identity
 {
     public class AppUser : IdentityUser<Guid>
     {
+        public Guid TenantId { get; set; }
+        public virtual Tenant Tenant { get; set; } = null!;
         public bool IsActive { get; set; } = true;
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -20,4 +22,3 @@ namespace Identity.Domain.Entities.Identity
         public virtual ICollection<IdentityUserRole<Guid>> UserRoles { get; set; }
     }
 }
-

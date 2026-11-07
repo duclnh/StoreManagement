@@ -26,6 +26,7 @@ namespace Identity.Api.DependencyInjection.Extensions
             {
                 var createRole = await roleManager.CreateAsync(new AppRole
                 {
+                    TenantId = TenantDefaults.LegacyTenantId,
                     Name = AdministratorRole,
                     RoleCode = "ADMIN",
                     Description = "Identity administration"
@@ -41,6 +42,7 @@ namespace Identity.Api.DependencyInjection.Extensions
                 {
                     UserName = email,
                     Email = email,
+                    TenantId = TenantDefaults.LegacyTenantId,
                     EmailConfirmed = true,
                     IsActive = true,
                     FirstName = "System",

@@ -75,6 +75,10 @@ namespace Identity.Persistence.DependencyInjections.Extensions
             services.AddTransient(typeof(IUnitOfWork), typeof(EFUnitOfWork));
             services.AddTransient(typeof(IRepositoryBase<,>), typeof(RepositoryBase<,>));
             services.AddTransient<IAppUserRepository, AppUserRepository>();
+            services.AddTransient<IRolePermissionRepository, RolePermissionRepository>();
+            services.AddTransient<ISecurityAuditRepository, SecurityAuditRepository>();
+            services.AddTransient<IUserRoleAssignmentRepository, UserRoleAssignmentRepository>();
+            services.AddScoped<IIdentityTenantContext, IdentityTenantContext>();
         }
 
         public static OptionsBuilder<SqlServerRetryOptions> ConfigureSqlServerRetryOptionsPersistence(this IServiceCollection services, IConfigurationSection section)
@@ -86,4 +90,3 @@ namespace Identity.Persistence.DependencyInjections.Extensions
         }
     }
 }
-

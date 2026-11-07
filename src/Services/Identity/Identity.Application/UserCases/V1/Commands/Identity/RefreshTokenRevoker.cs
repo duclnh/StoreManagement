@@ -21,6 +21,14 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
                 unitOfWork.LoginSessionRepository.Update(session);
             }
 
+            if (sessions.Count > 0)
+            {
+                unitOfWork.SecurityAuditRepository.Record(
+                    SecurityAuditEventTypes.SessionsRevoked,
+                    SecurityAuditOutcomes.Succeeded,
+                    userId,
+                    $"AllSessions:{sessions.Count}");
+            }
             await unitOfWork.SaveChangeAsync(cancellationToken);
         }
     }

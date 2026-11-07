@@ -30,6 +30,15 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
                 _unitOfWork.LoginSessionRepository.Update(session);
             }
 
+            if (sessions.Count > 0)
+            {
+                _unitOfWork.SecurityAuditRepository.Record(
+                    SecurityAuditEventTypes.SessionsRevoked,
+                    SecurityAuditOutcomes.Succeeded,
+                    request.UserId,
+                    $"OtherSessions:{sessions.Count}",
+                    request.CurrentSessionId);
+            }
             await _unitOfWork.SaveChangeAsync(cancellationToken);
 
             return Result.Success(sessions.Count);

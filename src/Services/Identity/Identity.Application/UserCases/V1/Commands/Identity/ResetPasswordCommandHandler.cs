@@ -29,6 +29,11 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
                 return InvalidReset();
 
             await RefreshTokenRevoker.RevokeAllAsync(_unitOfWork, user.Id, cancellationToken);
+            _unitOfWork.SecurityAuditRepository.Record(
+                SecurityAuditEventTypes.PasswordReset,
+                SecurityAuditOutcomes.Succeeded,
+                user.Id);
+            await _unitOfWork.SaveChangeAsync(cancellationToken);
             return Result.Success(true);
         }
 
