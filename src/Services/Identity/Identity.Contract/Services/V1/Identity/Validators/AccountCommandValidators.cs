@@ -18,6 +18,21 @@ namespace Identity.Contract.Services.V1.Identity.Validators
         }
     }
 
+    public sealed class CreateManagedUserValidator : AbstractValidator<AccountCommand.CreateManagedUser>
+    {
+        public CreateManagedUserValidator()
+        {
+            RuleFor(request => request.Email).NotEmpty().EmailAddress();
+            RuleFor(request => request.Password)
+                .NotEmpty()
+                .MinimumLength(8)
+                .Matches("[0-9]").WithMessage("Password must contain at least one digit.");
+            RuleFor(request => request.FirstName).NotEmpty().MaximumLength(100);
+            RuleFor(request => request.LastName).NotEmpty().MaximumLength(100);
+            RuleFor(request => request.Roles).NotNull();
+        }
+    }
+
     public sealed class ChangePasswordValidator : AbstractValidator<AccountCommand.ChangePassword>
     {
         public ChangePasswordValidator()

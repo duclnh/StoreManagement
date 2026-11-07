@@ -5,10 +5,8 @@ import type {
   UpdateUserStatusRequest,
   UserPage,
   UserRolesRequest,
-  RegisterUserRequest,
 } from "../interfaces";
-import { get, patch, put } from "@/services/api-client";
-import { registerUser } from "./auth.api";
+import { get, patch, post, put } from "@/services/api-client";
 
 export const emptyUserPage: UserPage = {
   items: [],
@@ -32,15 +30,15 @@ export const updateUserStatus = (userId: string, input: UpdateUserStatusRequest)
   patch(`admin/users/${encodeURIComponent(userId)}/status`, input);
 
 export async function createUser(input: NewUserDraft) {
-  const registration: RegisterUserRequest = {
-    email: input.email,
-    password: input.password,
-    firstName: input.firstName,
-    lastName: input.lastName,
-  };
-  const userId = await registerUser(registration);
-  if (userId && input.roles.length) {
-    await updateUserRoles(userId, { roles: input.roles });
+  const response = await post<unknown>("admin/users", input);
+  const userId = typeof response === "string"
+    ? response
+    : response && typeof response === "object"
+      ? (response as { value?: unknown; Value?: unknown }).value
+        ?? (response as { Value?: unknown }).Value
+      : undefined;
+  if (typeof userId !== "string" || !userId) {
+    throw new Error("Identity API returned an invalid managed user response.");
   }
 }
 

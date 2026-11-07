@@ -4,7 +4,7 @@ namespace Identity.Domain.Entities.Identity
 {
     public class LoginSession : Entity<Guid>
     {
-        private LoginSession()
+        protected LoginSession()
         {
         }
 

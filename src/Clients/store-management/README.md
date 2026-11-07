@@ -31,6 +31,13 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
   - `locales/` contains the `next-intl` message catalogs.
 - `features/employees/` is an empty scaffold for employee UI, hooks, API, schemas, types, stores, constants, and utilities. Add files when employee requirements and API contracts are defined.
 
+## Frontend stack
+
+- Next.js App Router, TypeScript, Tailwind CSS 4, CSS-variable theme, shadcn/ui, and Lucide React.
+- React Hook Form with Zod validation, Sonner notifications, TanStack Table, Motion, and Recharts.
+- Zustand for feature state and TanStack Query for server state; the shared QueryClient and notification host are initialized in `app/providers.tsx`.
+- Axios is configured in `services/api-client.ts` for same-origin requests through the identity BFF.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

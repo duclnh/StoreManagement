@@ -1,16 +1,12 @@
-import type { FormEvent } from "react";
+import type { LoginCredentialsValues, TwoFactorCodeValues } from "../schemas/login.schema";
 
 export interface LoginScreenProps {
   busy: boolean;
   email: string;
   error: string;
   notice: string;
-  password: string;
   requiresTwoFactor: boolean;
-  twoFactorCode: string;
-  onEmailChange: (email: string) => void;
-  onPasswordChange: (password: string) => void;
-  onTwoFactorCodeChange: (code: string) => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onCredentialsSubmit: (credentials: LoginCredentialsValues) => void;
+  onTwoFactorSubmit: (credentials: TwoFactorCodeValues) => void;
   onChangeAccount: () => void;
 }

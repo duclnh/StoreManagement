@@ -8,7 +8,7 @@ using QueryContracts = Identity.Contract.Services.V1.Identity.Query;
 using static Identity.Contract.Services.V1.Identity.Command;
 using static Identity.Contract.Services.V1.Identity.Query;
 
-namespace Identity.Presentation.Apis.Identity
+namespace Identity.Presentation.Apis.V1.Identity
 {
     public class AuthApi : ApiEndpoint, ICarterModule
     {
@@ -21,24 +21,24 @@ namespace Identity.Presentation.Apis.Identity
                 .HasApiVersion(1)
                 .RequireAuthorization();
 
-            group1.MapPost("register", RegisterV1).AllowAnonymous();
-            group1.MapPost("login", AuthenticationV1).AllowAnonymous();
-            group1.MapPost("email/confirmation/request", RequestEmailConfirmationV1).AllowAnonymous();
-            group1.MapPost("email/confirm", ConfirmEmailV1).AllowAnonymous();
-            group1.MapPost("password/forgot", RequestPasswordResetV1).AllowAnonymous();
-            group1.MapPost("password/reset", ResetPasswordV1).AllowAnonymous();
-            group1.MapPost("revoke", RevokeTokenV1);
-            group1.MapPost("refresh", RefreshTokenV1).AllowAnonymous();
-            group1.MapGet("sessions", ListSessionsV1);
-            group1.MapPost("sessions/revoke-others", RevokeOtherSessionsV1);
-            group1.MapPost("password/change", ChangePasswordV1);
-            group1.MapGet("2fa/setup", CreateAuthenticatorSetupV1);
-            group1.MapPost("2fa/enable", EnableTwoFactorV1);
-            group1.MapPost("2fa/disable", DisableTwoFactorV1);
+            group1.MapPost("register", Register).AllowAnonymous();
+            group1.MapPost("login", Authentication).AllowAnonymous();
+            group1.MapPost("email/confirmation/request", RequestEmailConfirmation).AllowAnonymous();
+            group1.MapPost("email/confirm", ConfirmEmail).AllowAnonymous();
+            group1.MapPost("password/forgot", RequestPasswordReset).AllowAnonymous();
+            group1.MapPost("password/reset", ResetPassword).AllowAnonymous();
+            group1.MapPost("revoke", RevokeToken);
+            group1.MapPost("refresh", RefreshToken).AllowAnonymous();
+            group1.MapGet("sessions", ListSessions);
+            group1.MapPost("sessions/revoke-others", RevokeOtherSessions);
+            group1.MapPost("password/change", ChangePassword);
+            group1.MapGet("2fa/setup", CreateAuthenticatorSetup);
+            group1.MapPost("2fa/enable", EnableTwoFactor);
+            group1.MapPost("2fa/disable", DisableTwoFactor);
 
         }
 
-        private async Task<IResult> RegisterV1(ISender sender, [FromBody] Register request)
+        private async Task<IResult> Register(ISender sender, [FromBody] Register request)
         {
             var result = await sender.Send(request);
             if (result.IsFailure)
@@ -47,7 +47,7 @@ namespace Identity.Presentation.Apis.Identity
             return Results.Created($"/api/v1/users/{result.Value}", result);
         }
 
-        private async Task<IResult> RequestEmailConfirmationV1(
+        private async Task<IResult> RequestEmailConfirmation(
             ISender sender,
             [FromBody] RequestEmailConfirmation request,
             CancellationToken cancellationToken)
@@ -59,7 +59,7 @@ namespace Identity.Presentation.Apis.Identity
             return Results.Ok(result);
         }
 
-        private async Task<IResult> ConfirmEmailV1(
+        private async Task<IResult> ConfirmEmail(
             ISender sender,
             [FromBody] ConfirmEmail request,
             CancellationToken cancellationToken)
@@ -71,7 +71,7 @@ namespace Identity.Presentation.Apis.Identity
             return Results.Ok(result);
         }
 
-        private async Task<IResult> RequestPasswordResetV1(
+        private async Task<IResult> RequestPasswordReset(
             ISender sender,
             [FromBody] RequestPasswordReset request,
             CancellationToken cancellationToken)
@@ -83,7 +83,7 @@ namespace Identity.Presentation.Apis.Identity
             return Results.Ok(result);
         }
 
-        private async Task<IResult> ResetPasswordV1(
+        private async Task<IResult> ResetPassword(
             ISender sender,
             [FromBody] ResetPassword request,
             CancellationToken cancellationToken)
@@ -95,7 +95,7 @@ namespace Identity.Presentation.Apis.Identity
             return Results.Ok(result);
         }
 
-        private async Task<IResult> AuthenticationV1(ISender sender, HttpContext context, [FromBody] Login login)
+        private async Task<IResult> Authentication(ISender sender, HttpContext context, [FromBody] Login login)
         {
             var request = new Login(
                 login.Email,
@@ -110,7 +110,7 @@ namespace Identity.Presentation.Apis.Identity
             return Results.Ok(result);
         }
 
-        private async Task<IResult> RevokeTokenV1(ISender sender, ClaimsPrincipal user, [FromBody] RevokeSession request)
+        private async Task<IResult> RevokeToken(ISender sender, ClaimsPrincipal user, [FromBody] RevokeSession request)
         {
             var userIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!Guid.TryParse(userIdValue, out var userId))
@@ -123,7 +123,7 @@ namespace Identity.Presentation.Apis.Identity
             return Results.Ok(result);
         }
 
-        private async Task<IResult> RefreshTokenV1(ISender sender, [FromBody] RefreshToken request)
+        private async Task<IResult> RefreshToken(ISender sender, [FromBody] RefreshToken request)
         {
             var result = await sender.Send(request);
             if (result.IsFailure)
@@ -132,7 +132,7 @@ namespace Identity.Presentation.Apis.Identity
             return Results.Ok(result);
         }
 
-        private async Task<IResult> ListSessionsV1(ISender sender, ClaimsPrincipal user)
+        private async Task<IResult> ListSessions(ISender sender, ClaimsPrincipal user)
         {
             if (!TryGetSessionClaims(user, out var userId, out var sessionId))
                 return Results.Unauthorized();
@@ -144,7 +144,7 @@ namespace Identity.Presentation.Apis.Identity
             return Results.Ok(result);
         }
 
-        private async Task<IResult> RevokeOtherSessionsV1(ISender sender, ClaimsPrincipal user)
+        private async Task<IResult> RevokeOtherSessions(ISender sender, ClaimsPrincipal user)
         {
             if (!TryGetSessionClaims(user, out var userId, out var sessionId))
                 return Results.Unauthorized();
@@ -156,7 +156,7 @@ namespace Identity.Presentation.Apis.Identity
             return Results.Ok(result);
         }
 
-        private async Task<IResult> ChangePasswordV1(ISender sender, ClaimsPrincipal user, [FromBody] ChangePasswordRequest request)
+        private async Task<IResult> ChangePassword(ISender sender, ClaimsPrincipal user, [FromBody] ChangePasswordRequest request)
         {
             if (!TryGetUserId(user, out var userId))
                 return Results.Unauthorized();
@@ -168,7 +168,7 @@ namespace Identity.Presentation.Apis.Identity
             return Results.Ok(result);
         }
 
-        private async Task<IResult> CreateAuthenticatorSetupV1(ISender sender, ClaimsPrincipal user)
+        private async Task<IResult> CreateAuthenticatorSetup(ISender sender, ClaimsPrincipal user)
         {
             if (!TryGetUserId(user, out var userId))
                 return Results.Unauthorized();
@@ -180,7 +180,7 @@ namespace Identity.Presentation.Apis.Identity
             return Results.Ok(result);
         }
 
-        private async Task<IResult> EnableTwoFactorV1(ISender sender, ClaimsPrincipal user, [FromBody] TwoFactorCode request)
+        private async Task<IResult> EnableTwoFactor(ISender sender, ClaimsPrincipal user, [FromBody] TwoFactorCode request)
         {
             if (!TryGetUserId(user, out var userId))
                 return Results.Unauthorized();
@@ -192,7 +192,7 @@ namespace Identity.Presentation.Apis.Identity
             return Results.Ok(result);
         }
 
-        private async Task<IResult> DisableTwoFactorV1(ISender sender, ClaimsPrincipal user, [FromBody] TwoFactorCode request)
+        private async Task<IResult> DisableTwoFactor(ISender sender, ClaimsPrincipal user, [FromBody] TwoFactorCode request)
         {
             if (!TryGetUserId(user, out var userId))
                 return Results.Unauthorized();
@@ -215,5 +215,4 @@ namespace Identity.Presentation.Apis.Identity
         }
     }
 }
-
 

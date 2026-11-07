@@ -39,6 +39,11 @@
     "twoFactorPrompt": "Password verified. Enter your authenticator code to continue.",
     "invalidCredentials": "Email or password is incorrect.",
     "invalidCode": "That code could not be verified. Check it and try again.",
-    "genericError": "We couldn't sign you in. Please try again."
+    "genericError": "We couldn't sign you in. Please try again.",
+    "validation": {
+      "required": "This field is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "codeInvalid": "Enter the 6-digit authenticator code."
+    }
   }
 }

@@ -24,16 +24,17 @@ namespace Identity.Contract.Services.V1.Identity
         public record UpdateUserProfile(Guid UserId, Guid ActorId, string FirstName, string LastName) : ICommand<bool>;
         public record SetUserActive(Guid UserId, Guid ActorId, bool IsActive) : ICommand<bool>;
         public record AssignUserRoles(Guid UserId, Guid ActorId, List<string> Roles) : ICommand<bool>;
+        public record CreateManagedUser(string Email, string Password, string FirstName, string LastName, List<string> Roles) : ICommand<Guid>;
         public record CreateRole(string Name, string RoleCode, string Description) : ICommand<Guid>;
         public record UpdateRole(Guid RoleId, string Name, string RoleCode, string Description) : ICommand<bool>;
         public record DeleteRole(Guid RoleId) : ICommand<bool>;
         public sealed record UpdateUserRequest(string FirstName, string LastName);
         public sealed record SetUserActiveRequest(bool IsActive);
         public sealed record AssignUserRolesRequest(List<string> Roles);
+        public sealed record CreateManagedUserRequest(string Email, string Password, string FirstName, string LastName, List<string> Roles);
         public sealed record UpdateRoleRequest(string Name, string RoleCode, string Description);
         public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
         public record TwoFactorCode(string Code);
     }
 }
-
 

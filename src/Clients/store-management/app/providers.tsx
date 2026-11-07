@@ -1,7 +1,9 @@
 "use client";
 
 import { NextIntlClientProvider } from "next-intl";
-import { createContext, useCallback, useContext, useEffect, useSyncExternalStore, type ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "sonner";
+import { createContext, useCallback, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import enMessages from "@/features/identity-admin/locales/en.json";
 import viMessages from "@/features/identity-admin/locales/vi.json";
 
@@ -44,6 +46,15 @@ export function useAppLocale() {
 }
 
 export default function AppProviders({ children }: { children: ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false,
+        retry: 1,
+        staleTime: 30_000,
+      },
+    },
+  }));
   const locale = useSyncExternalStore(subscribeToLocale, getStoredLocale, getServerLocale);
   const setLocale = useCallback((nextLocale: AppLocale) => {
     document.cookie = `store-management-locale=${nextLocale}; Path=/; Max-Age=31536000; SameSite=Lax`;
@@ -56,10 +67,13 @@ export default function AppProviders({ children }: { children: ReactNode }) {
   }, [locale]);
 
   return (
-    <LocaleContext.Provider value={{ locale, setLocale }}>
-      <NextIntlClientProvider locale={locale} messages={messages[locale]} timeZone="UTC">
-        {children}
-      </NextIntlClientProvider>
-    </LocaleContext.Provider>
+    <QueryClientProvider client={queryClient}>
+      <LocaleContext.Provider value={{ locale, setLocale }}>
+        <NextIntlClientProvider locale={locale} messages={messages[locale]} timeZone="UTC">
+          {children}
+          <Toaster position="bottom-right" richColors />
+        </NextIntlClientProvider>
+      </LocaleContext.Provider>
+    </QueryClientProvider>
   );
 }

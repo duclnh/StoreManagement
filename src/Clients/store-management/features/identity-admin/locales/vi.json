@@ -39,6 +39,11 @@
     "twoFactorPrompt": "Mật khẩu chính xác. Nhập mã xác thực để tiếp tục.",
     "invalidCredentials": "Email hoặc mật khẩu không chính xác.",
     "invalidCode": "Mã xác thực chưa đúng. Vui lòng kiểm tra và thử lại.",
-    "genericError": "Không thể đăng nhập. Vui lòng thử lại."
+    "genericError": "Không thể đăng nhập. Vui lòng thử lại.",
+    "validation": {
+      "required": "Trường này là bắt buộc.",
+      "emailInvalid": "Vui lòng nhập địa chỉ email hợp lệ.",
+      "codeInvalid": "Vui lòng nhập mã xác thực gồm 6 chữ số."
+    }
   }
 }

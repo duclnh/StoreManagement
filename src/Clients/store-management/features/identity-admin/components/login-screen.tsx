@@ -3,25 +3,151 @@
 import { useTranslations } from "next-intl";
 import { ArrowRight, Boxes, Check, Globe2, KeyRound, Package, ShieldCheck, ShoppingBag, Store, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppLocale } from "@/app/providers";
 import type { LoginScreenProps } from "../interfaces";
+import {
+  loginCredentialsSchema,
+  twoFactorCodeSchema,
+  type LoginCredentialsValues,
+  type TwoFactorCodeValues,
+} from "../schemas/login.schema";
+
+interface LoginFormState {
+  busy: boolean;
+  email: string;
+  error: string;
+  notice: string;
+}
+
+function CredentialsForm({
+  busy,
+  email,
+  error,
+  notice,
+  onSubmit,
+}: LoginFormState & { onSubmit: (credentials: LoginCredentialsValues) => void }) {
+  const t = useTranslations("login");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginCredentialsValues>({
+    resolver: zodResolver(loginCredentialsSchema),
+    defaultValues: { email, password: "" },
+  });
+  const emailError = errors.email?.message === "emailInvalid"
+    ? t("validation.emailInvalid")
+    : errors.email
+      ? t("validation.required")
+      : undefined;
+  const passwordError = errors.password ? t("validation.required") : undefined;
+
+  return (
+    <form className="login-card" onSubmit={handleSubmit(onSubmit)} noValidate>
+      <div className="login-symbol"><KeyRound size={19} /></div>
+      <p className="eyebrow">{t("secure")}</p>
+      <h2>{t("welcome")}</h2>
+      <p className="subtle">{t("welcomeDescription")}</p>
+      <label htmlFor="login-email">{t("email")}</label>
+      <input
+        id="login-email"
+        type="email"
+        autoComplete="username"
+        placeholder={t("emailPlaceholder")}
+        aria-invalid={Boolean(errors.email)}
+        aria-describedby={errors.email ? "login-email-error" : undefined}
+        {...register("email")}
+      />
+      {emailError && <p id="login-email-error" className="form-field-error" role="alert">{emailError}</p>}
+      <label htmlFor="login-password">{t("password")}</label>
+      <input
+        id="login-password"
+        type="password"
+        autoComplete="current-password"
+        placeholder={t("passwordPlaceholder")}
+        aria-invalid={Boolean(errors.password)}
+        aria-describedby={errors.password ? "login-password-error" : undefined}
+        {...register("password")}
+      />
+      {passwordError && <p id="login-password-error" className="form-field-error" role="alert">{passwordError}</p>}
+      {notice && <p className="login-notice" role="status">{notice}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
+      <button className="primary-button full-button" disabled={busy}>
+        {busy ? t("signingIn") : t("signIn")}<ArrowRight size={16} />
+      </button>
+      <p className="login-footnote"><ShieldCheck size={14} />{t("protection")}</p>
+    </form>
+  );
+}
+
+function TwoFactorForm({
+  busy,
+  email,
+  error,
+  notice,
+  onSubmit,
+  onChangeAccount,
+}: LoginFormState & {
+  onSubmit: (credentials: TwoFactorCodeValues) => void;
+  onChangeAccount: () => void;
+}) {
+  const t = useTranslations("login");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<TwoFactorCodeValues>({
+    resolver: zodResolver(twoFactorCodeSchema),
+    defaultValues: { code: "" },
+  });
+  const codeError = errors.code ? t("validation.codeInvalid") : undefined;
+
+  return (
+    <form className="login-card" onSubmit={handleSubmit(onSubmit)} noValidate>
+      <div className="login-symbol"><KeyRound size={19} /></div>
+      <p className="eyebrow">{t("secure")}</p>
+      <h2>{t("verify")}</h2>
+      <p className="subtle">{t("verifyDescription")}</p>
+      <p className="login-account">{email}</p>
+      <label htmlFor="login-code">{t("code")}</label>
+      <input
+        id="login-code"
+        type="text"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        maxLength={6}
+        autoFocus
+        placeholder={t("codePlaceholder")}
+        aria-invalid={Boolean(errors.code)}
+        aria-describedby={errors.code ? "login-code-error" : undefined}
+        {...register("code", { setValueAs: (value: string) => value.replace(/\D/g, "") })}
+      />
+      {codeError && <p id="login-code-error" className="form-field-error" role="alert">{codeError}</p>}
+      <button type="button" className="login-back-button" onClick={onChangeAccount} disabled={busy}>{t("changeAccount")}</button>
+      {notice && <p className="login-notice" role="status">{notice}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
+      <button className="primary-button full-button" disabled={busy}>
+        {busy ? t("signingIn") : t("verifySignIn")}<ArrowRight size={16} />
+      </button>
+      <p className="login-footnote"><ShieldCheck size={14} />{t("protection")}</p>
+    </form>
+  );
+}
 
 export default function LoginScreen({
   busy,
   email,
   error,
   notice,
-  password,
   requiresTwoFactor,
-  twoFactorCode,
-  onEmailChange,
-  onPasswordChange,
-  onTwoFactorCodeChange,
-  onSubmit,
+  onCredentialsSubmit,
+  onTwoFactorSubmit,
   onChangeAccount,
 }: LoginScreenProps) {
-  const t = useTranslations("login");
   const { locale, setLocale } = useAppLocale();
+  const t = useTranslations("login");
 
   return (
     <main className="login-shell login-shell-store">
@@ -84,28 +210,24 @@ export default function LoginScreen({
           <span aria-hidden="true">/</span>
           <button type="button" className={locale === "en" ? "selected" : ""} aria-label={t("english")} aria-pressed={locale === "en"} onClick={() => setLocale("en")}><span>EN</span> {t("english")}</button>
         </div>
-        <form className="login-card" onSubmit={onSubmit}>
-          <div className="login-symbol"><KeyRound size={19} /></div>
-          <p className="eyebrow">{t("secure")}</p>
-          <h2>{requiresTwoFactor ? t("verify") : t("welcome")}</h2>
-          <p className="subtle">{requiresTwoFactor ? t("verifyDescription") : t("welcomeDescription")}</p>
-          {!requiresTwoFactor ? <>
-            <label htmlFor="login-email">{t("email")}</label>
-            <input id="login-email" type="email" autoComplete="username" value={email} onChange={(event) => onEmailChange(event.target.value)} required placeholder={t("emailPlaceholder")} />
-            <label htmlFor="login-password">{t("password")}</label>
-            <input id="login-password" type="password" autoComplete="current-password" value={password} onChange={(event) => onPasswordChange(event.target.value)} required placeholder={t("passwordPlaceholder")} />
-          </> : <>
-            <label htmlFor="login-code">{t("code")}</label>
-            <input id="login-code" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} autoFocus value={twoFactorCode} onChange={(event) => onTwoFactorCodeChange(event.target.value.replace(/\D/g, ""))} required placeholder={t("codePlaceholder")} />
-            <button type="button" className="login-back-button" onClick={onChangeAccount} disabled={busy}>{t("changeAccount")}</button>
-          </>}
-          {notice && <p className="login-notice" role="status">{notice}</p>}
-          {error && <p className="form-error" role="alert">{error}</p>}
-          <button className="primary-button full-button" disabled={busy || (requiresTwoFactor && twoFactorCode.length !== 6)}>
-            {busy ? t("signingIn") : requiresTwoFactor ? t("verifySignIn") : t("signIn")}<ArrowRight size={16} />
-          </button>
-          <p className="login-footnote"><ShieldCheck size={14} />{t("protection")}</p>
-        </form>
+        {requiresTwoFactor ? (
+          <TwoFactorForm
+            busy={busy}
+            email={email}
+            error={error}
+            notice={notice}
+            onSubmit={onTwoFactorSubmit}
+            onChangeAccount={onChangeAccount}
+          />
+        ) : (
+          <CredentialsForm
+            busy={busy}
+            email={email}
+            error={error}
+            notice={notice}
+            onSubmit={onCredentialsSubmit}
+          />
+        )}
         <div className="login-area-footer">STORE MANAGEMENT <span>·</span> {t("platformFooter")}</div>
       </section>
     </main>

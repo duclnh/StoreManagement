@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useDeferredValue, useEffect, useState, type FormEvent } from "react";
 import { IdentityApiError } from "@/services/api-client";
+import type { LoginCredentialsValues, TwoFactorCodeValues } from "../schemas/login.schema";
 import { getSession, signIn as authenticate, signOut as endSession } from "../api/auth.api";
 import { deleteRole as removeRole, listRoles, saveRole as persistRole } from "../api/roles.api";
 import {
@@ -23,7 +24,7 @@ import {
 import AccountSecurity from "./account-security";
 import LoginScreen from "./login-screen";
 import { useWorkspaceView } from "./workspace-view-provider";
-import type { AdminConsoleProps, LoginSession, NewUserDraft, Role, RoleDraft, Session, User, UserPage } from "../interfaces";
+import type { AdminConsoleProps, LoginRequest, LoginSession, NewUserDraft, Role, RoleDraft, Session, User, UserPage } from "../interfaces";
 
 export default function AdminConsole({ mode }: AdminConsoleProps) {
   const router = useRouter();
@@ -32,8 +33,7 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [pendingCredentials, setPendingCredentials] = useState<Omit<LoginRequest, "twoFactorCode"> | null>(null);
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
   const t = useTranslations("login");
   const [users, setUsers] = useState<UserPage>(emptyUserPage);
@@ -106,17 +106,18 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
     catch (cause) { setError(cause instanceof Error ? cause.message : "Could not load sign-in sessions."); }
   }
 
-  async function signIn(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); setError(""); setNotice("");
+  async function signIn(credentials: LoginRequest) {
+    setBusy(true); setError(""); setNotice("");
     try {
-      const result = await authenticate({ email, password, ...(requiresTwoFactor ? { twoFactorCode } : {}) });
+      const result = await authenticate(credentials);
       setSession({ authenticated: true, email: result.email, userId: result.userId });
-      setPassword(""); setTwoFactorCode(""); setRequiresTwoFactor(false);
+      setPendingCredentials(null); setRequiresTwoFactor(false);
       router.replace("/dashboard");
     } catch (cause) {
       if (cause instanceof IdentityApiError && cause.code === "Identity.Authentication.TwoFactorRequired") {
+        setEmail(credentials.email);
+        setPendingCredentials({ email: credentials.email, password: credentials.password });
         setRequiresTwoFactor(true);
-        setTwoFactorCode("");
         setNotice(t("twoFactorPrompt"));
         return;
       }
@@ -129,9 +130,22 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
     finally { setBusy(false); }
   }
 
+  function submitCredentials(credentials: LoginCredentialsValues) {
+    void signIn(credentials);
+  }
+
+  function submitTwoFactor({ code }: TwoFactorCodeValues) {
+    if (!pendingCredentials) {
+      setError(t("genericError"));
+      setRequiresTwoFactor(false);
+      return;
+    }
+    void signIn({ ...pendingCredentials, twoFactorCode: code });
+  }
+
   function backToCredentials() {
+    setPendingCredentials(null);
     setRequiresTwoFactor(false);
-    setTwoFactorCode("");
     setNotice("");
     setError("");
   }
@@ -232,13 +246,9 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
         email={email}
         error={error}
         notice={notice}
-        password={password}
         requiresTwoFactor={requiresTwoFactor}
-        twoFactorCode={twoFactorCode}
-        onEmailChange={setEmail}
-        onPasswordChange={setPassword}
-        onTwoFactorCodeChange={setTwoFactorCode}
-        onSubmit={signIn}
+        onCredentialsSubmit={submitCredentials}
+        onTwoFactorSubmit={submitTwoFactor}
         onChangeAccount={backToCredentials}
       />
     );
