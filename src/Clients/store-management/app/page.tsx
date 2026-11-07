@@ -1,5 +1,5 @@
-import AdminConsole from "@/features/identity-admin/components/admin-console";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <AdminConsole />;
+  redirect("/login");
 }

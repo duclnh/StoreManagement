@@ -96,6 +96,7 @@ async function handle(request: Request, context: RouteContext) {
     return Response.json({
       authenticated: hasSession,
       email: hasSession ? cookieStore.get(cookieNames.email)?.value ?? "" : "",
+      userId: hasSession ? cookieStore.get(cookieNames.userId)?.value ?? "" : "",
     });
   }
 

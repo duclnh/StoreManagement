@@ -1,41 +1,41 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Check, KeyRound, LogOut, Monitor, Pencil, Plus, Search, Shield, ShieldCheck, UsersRound, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, KeyRound, LogOut, Monitor, Pencil, Plus, Search, Settings2, Shield, ShieldCheck, UsersRound, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useDeferredValue, useEffect, useState, type FormEvent } from "react";
-import { emptyUserPage, identityApi } from "../api";
-import type { LoginSession, NewUserDraft, Role, RoleDraft, Session, User, UserPage } from "../types";
+import { IdentityApiError } from "@/services/api-client";
+import { getSession, signIn as authenticate, signOut as endSession } from "../api/auth.api";
+import { deleteRole as removeRole, listRoles, saveRole as persistRole } from "../api/roles.api";
+import {
+  listSessions,
+  revokeOtherSessions as revokeOtherLoginSessions,
+  revokeSession as revokeLoginSession,
+} from "../api/sessions.api";
+import {
+  createUser as createUserAccount,
+  emptyUserPage,
+  listUsers,
+  updateUser,
+  updateUserRoles,
+  updateUserStatus,
+} from "../api/users.api";
+import AccountSecurity from "./account-security";
+import LoginScreen from "./login-screen";
+import { useWorkspaceView } from "./workspace-view-provider";
+import type { AdminConsoleProps, LoginSession, NewUserDraft, Role, RoleDraft, Session, User, UserPage } from "../interfaces";
 
-function isLoginSession(value: unknown): value is LoginSession {
-  if (!value || typeof value !== "object") return false;
-  const session = value as Record<string, unknown>;
-  return typeof session.sessionId === "string"
-    && (typeof session.userAgent === "string" || session.userAgent === null)
-    && (typeof session.ipAddress === "string" || session.ipAddress === null)
-    && typeof session.createdAtUtc === "string"
-    && typeof session.lastActiveAtUtc === "string"
-    && typeof session.expiresAtUtc === "string"
-    && typeof session.isCurrent === "boolean";
-}
-
-function readLoginSessions(response: unknown): LoginSession[] {
-  const payload = response && typeof response === "object"
-    ? response as { value?: unknown; Value?: unknown }
-    : undefined;
-  const sessions = Array.isArray(response) ? response : payload?.value ?? payload?.Value;
-  if (!Array.isArray(sessions) || !sessions.every(isLoginSession)) {
-    throw new Error("Identity API returned an invalid session list.");
-  }
-  return sessions;
-}
-
-export default function AdminConsole() {
+export default function AdminConsole({ mode }: AdminConsoleProps) {
+  const router = useRouter();
+  const { view, setView } = useWorkspaceView();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
-  const [view, setView] = useState<"users" | "roles" | "sessions">("users");
+  const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
+  const t = useTranslations("login");
   const [users, setUsers] = useState<UserPage>(emptyUserPage);
   const [roles, setRoles] = useState<Role[]>([]);
   const [sessions, setSessions] = useState<LoginSession[]>([]);
@@ -54,7 +54,7 @@ export default function AdminConsole() {
 
   useEffect(() => {
     let mounted = true;
-    identityApi<Session>("session").then((value) => {
+    getSession().then((value) => {
       if (mounted) { setSession(value); setEmail(value.email); }
     }).catch(() => {
       if (mounted) setSession({ authenticated: false, email: "" });
@@ -65,31 +65,39 @@ export default function AdminConsole() {
   }, []);
 
   useEffect(() => {
-    if (!session?.authenticated) return;
+    if (loading) return;
+    if (mode === "login" && session?.authenticated) {
+      router.replace("/dashboard");
+    } else if (mode !== "login" && !session?.authenticated) {
+      router.replace("/login");
+    }
+  }, [loading, mode, router, session?.authenticated]);
+
+  useEffect(() => {
+    if (!session?.authenticated || mode !== "dashboard") return;
     let mounted = true;
     Promise.all([
-      identityApi<UserPage>(`admin/users?search=${encodeURIComponent(searchQuery)}&page=${page}&pageSize=25`),
-      identityApi<Role[]>("admin/roles"),
-      identityApi<unknown>("auths/sessions").then(readLoginSessions),
+      listUsers(searchQuery, page),
+      listRoles(),
+      listSessions(),
     ]).then(([userPage, roleList, loginSessions]) => {
       if (mounted) { setUsers(userPage); setRoles(roleList); setSessions(loginSessions); setError(""); }
     }).catch((cause: unknown) => {
       if (mounted) setError(cause instanceof Error ? cause.message : "Could not load the directory.");
     });
     return () => { mounted = false; };
-  }, [session?.authenticated, searchQuery, page]);
+  }, [mode, session?.authenticated, searchQuery, page]);
 
   async function loadUsers() {
-    setUsers(await identityApi<UserPage>(`admin/users?search=${encodeURIComponent(searchQuery)}&page=${page}&pageSize=25`));
+    setUsers(await listUsers(searchQuery, page));
   }
 
   async function loadRoles() {
-    setRoles(await identityApi<Role[]>("admin/roles"));
+    setRoles(await listRoles());
   }
 
   async function loadSessions() {
-    const response = await identityApi<unknown>("auths/sessions");
-    setSessions(readLoginSessions(response));
+    setSessions(await listSessions());
   }
 
   async function refreshSessions() {
@@ -99,18 +107,49 @@ export default function AdminConsole() {
   }
 
   async function signIn(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); setError("");
+    event.preventDefault(); setBusy(true); setError(""); setNotice("");
     try {
-      const result = await identityApi<Session>("auths/login", { method: "POST", body: JSON.stringify({ email, password, twoFactorCode }) });
-      setSession({ authenticated: true, email: result.email }); setPassword(""); setTwoFactorCode("");
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Sign-in failed."); }
+      const result = await authenticate({ email, password, ...(requiresTwoFactor ? { twoFactorCode } : {}) });
+      setSession({ authenticated: true, email: result.email, userId: result.userId });
+      setPassword(""); setTwoFactorCode(""); setRequiresTwoFactor(false);
+      router.replace("/dashboard");
+    } catch (cause) {
+      if (cause instanceof IdentityApiError && cause.code === "Identity.Authentication.TwoFactorRequired") {
+        setRequiresTwoFactor(true);
+        setTwoFactorCode("");
+        setNotice(t("twoFactorPrompt"));
+        return;
+      }
+      if (cause instanceof IdentityApiError && cause.code === "Identity.Authentication.InvalidCredentials") {
+        setError(requiresTwoFactor ? t("invalidCode") : t("invalidCredentials"));
+      } else {
+        setError(cause instanceof Error ? cause.message : t("genericError"));
+      }
+    }
     finally { setBusy(false); }
+  }
+
+  function backToCredentials() {
+    setRequiresTwoFactor(false);
+    setTwoFactorCode("");
+    setNotice("");
+    setError("");
   }
 
   async function signOut() {
     setBusy(true);
-    try { await identityApi("auths/logout", { method: "POST", body: "{}" }); }
-    finally { setSession({ authenticated: false, email: "" }); setUsers(emptyUserPage); setRoles([]); setSessions([]); setBusy(false); }
+    try { await endSession(); }
+    finally {
+      setSession({ authenticated: false, email: "" });
+      setUsers(emptyUserPage); setRoles([]); setSessions([]); setBusy(false);
+      router.replace("/login");
+    }
+  }
+
+  function navigateToView(nextView: "users" | "roles" | "sessions" | "security") {
+    setView(nextView);
+    if (nextView === "security" && mode !== "settings") router.push("/settings");
+    if (nextView !== "security" && mode === "settings") router.push("/dashboard");
   }
 
   function editUser(user: User) {
@@ -122,9 +161,9 @@ export default function AdminConsole() {
     event.preventDefault(); if (!selectedUser) return;
     setBusy(true); setError("");
     try {
-      await identityApi(`admin/users/${selectedUser.id}`, { method: "PUT", body: JSON.stringify({ firstName, lastName }) });
-      await identityApi(`admin/users/${selectedUser.id}/roles`, { method: "PUT", body: JSON.stringify({ roles: selectedRoles }) });
-      if (active !== selectedUser.isActive) await identityApi(`admin/users/${selectedUser.id}/status`, { method: "PATCH", body: JSON.stringify({ isActive: active }) });
+      await updateUser(selectedUser.id, { firstName, lastName });
+      await updateUserRoles(selectedUser.id, { roles: selectedRoles });
+      if (active !== selectedUser.isActive) await updateUserStatus(selectedUser.id, { isActive: active });
       setSelectedUser(null); setNotice("User changes saved."); await loadUsers(); await loadRoles();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not save user changes."); }
     finally { setBusy(false); }
@@ -134,23 +173,7 @@ export default function AdminConsole() {
     event.preventDefault(); if (!newUserDraft) return;
     setBusy(true); setError("");
     try {
-      const created = await identityApi<unknown>("auths/register", {
-        method: "POST",
-        body: JSON.stringify({
-          email: newUserDraft.email,
-          password: newUserDraft.password,
-          firstName: newUserDraft.firstName,
-          lastName: newUserDraft.lastName,
-        }),
-      });
-      const response = created as { value?: unknown; Value?: unknown };
-      const userId = String(response.value ?? response.Value ?? "");
-      if (userId && newUserDraft.roles.length) {
-        await identityApi(`admin/users/${userId}/roles`, {
-          method: "PUT",
-          body: JSON.stringify({ roles: newUserDraft.roles }),
-        });
-      }
+      await createUserAccount(newUserDraft);
       setNewUserDraft(null); setNotice("Account created. Email confirmation is required before sign-in.");
       await loadUsers(); await loadRoles();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not create account."); }
@@ -161,9 +184,10 @@ export default function AdminConsole() {
     event.preventDefault(); if (!roleDraft) return;
     setBusy(true); setError(""); const editing = Boolean(roleDraft.id);
     try {
-      await identityApi(editing ? `admin/roles/${roleDraft.id}` : "admin/roles", {
-        method: editing ? "PUT" : "POST",
-        body: JSON.stringify({ name: roleDraft.name, roleCode: roleDraft.roleCode, description: roleDraft.description }),
+      await persistRole(editing ? roleDraft.id : undefined, {
+        name: roleDraft.name,
+        roleCode: roleDraft.roleCode,
+        description: roleDraft.description,
       });
       setRoleDraft(null); setNotice(editing ? "Role updated." : "Role created."); await loadRoles();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not save role."); }
@@ -173,7 +197,7 @@ export default function AdminConsole() {
   async function deleteRole(role: Role) {
     if (role.name === "Administrator" || role.userCount > 0) return;
     setBusy(true); setError("");
-    try { await identityApi(`admin/roles/${role.id}`, { method: "DELETE" }); setNotice("Role deleted."); await loadRoles(); }
+    try { await removeRole(role.id); setNotice("Role deleted."); await loadRoles(); }
     catch (cause) { setError(cause instanceof Error ? cause.message : "Could not delete role."); }
     finally { setBusy(false); }
   }
@@ -182,10 +206,7 @@ export default function AdminConsole() {
     if (session.isCurrent || !window.confirm("Revoke this sign-in session?")) return;
     setBusy(true); setError("");
     try {
-      await identityApi("auths/revoke", {
-        method: "POST",
-        body: JSON.stringify({ sessionId: session.sessionId }),
-      });
+      await revokeLoginSession(session.sessionId);
       setNotice("Sign-in session revoked."); await loadSessions();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not revoke the session."); }
     finally { setBusy(false); }
@@ -195,7 +216,7 @@ export default function AdminConsole() {
     if (!sessions.some((session) => !session.isCurrent) || !window.confirm("Sign out all other devices?")) return;
     setBusy(true); setError("");
     try {
-      await identityApi("auths/sessions/revoke-others", { method: "POST", body: "{}" });
+      await revokeOtherLoginSessions();
       setNotice("All other sign-in sessions were revoked."); await loadSessions();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not revoke other sessions."); }
     finally { setBusy(false); }
@@ -204,24 +225,28 @@ export default function AdminConsole() {
   const pageCount = Math.max(1, Math.ceil(users.totalCount / users.pageSize));
   if (loading) return <main className="boot-screen"><span className="brand-mark"><ShieldCheck size={20} /></span><p>Preparing identity workspace</p></main>;
 
-  if (!session?.authenticated) return (
-    <main className="login-shell">
-      <section className="login-art">
-        <div className="brand-lockup"><span className="brand-mark"><ShieldCheck size={19} /></span><span>Store<span className="brand-light">Management</span></span></div>
-        <div className="login-message"><p className="eyebrow">IDENTITY CONTROL</p><h1>One clear view<br />of who has access.</h1><p>Manage accounts, roles, and the security state of your workspace.</p></div>
-        <div className="login-bottom"><span className="online-dot" /> Identity service <i /> Administrative access</div>
-      </section>
-      <section className="login-area"><form className="login-card" onSubmit={signIn}>
-        <div className="login-symbol"><KeyRound size={18} /></div><p className="eyebrow">ADMINISTRATOR SIGN IN</p><h2>Welcome back</h2><p className="subtle">Use your administrator account to continue.</p>
-        <label htmlFor="login-email">Email address</label><input id="login-email" type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} required placeholder="admin@company.com" />
-        <label htmlFor="login-password">Password</label><input id="login-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required placeholder="Enter password" />
-        <label htmlFor="login-code">Authenticator code <span className="optional">optional</span></label><input id="login-code" inputMode="numeric" autoComplete="one-time-code" value={twoFactorCode} onChange={(event) => setTwoFactorCode(event.target.value)} placeholder="6-digit code" />
-        {error && <p className="form-error" role="alert">{error}</p>}
-        <button className="primary-button full-button" disabled={busy}>{busy ? "Signing in…" : "Sign in to workspace"}<ArrowRight size={16} /></button>
-        <p className="login-footnote">Access is restricted to accounts assigned the Administrator role.</p>
-      </form></section>
-    </main>
-  );
+  if (!session?.authenticated && mode === "login") {
+    return (
+      <LoginScreen
+        busy={busy}
+        email={email}
+        error={error}
+        notice={notice}
+        password={password}
+        requiresTwoFactor={requiresTwoFactor}
+        twoFactorCode={twoFactorCode}
+        onEmailChange={setEmail}
+        onPasswordChange={setPassword}
+        onTwoFactorCodeChange={setTwoFactorCode}
+        onSubmit={signIn}
+        onChangeAccount={backToCredentials}
+      />
+    );
+  }
+
+  if (!session?.authenticated || (mode === "login" && session.authenticated)) {
+    return <main className="boot-screen"><span className="brand-mark"><ShieldCheck size={20} /></span><p>Preparing identity workspace</p></main>;
+  }
 
   return (
     <main className="workspace-shell">
@@ -229,14 +254,15 @@ export default function AdminConsole() {
         <div className="brand-lockup sidebar-brand"><span className="brand-mark"><ShieldCheck size={19} /></span><span>Store<span className="brand-light">Management</span></span></div>
         <p className="workspace-label">WORKSPACE</p>
         <nav className="side-nav" aria-label="Identity administration">
-          <button className={view === "users" ? "nav-item active" : "nav-item"} onClick={() => setView("users")}><UsersRound size={17} /><span>User directory</span><small>{users.totalCount}</small></button>
-          <button className={view === "roles" ? "nav-item active" : "nav-item"} onClick={() => setView("roles")}><Shield size={17} /><span>Roles</span><small>{roles.length}</small></button>
-          <button className={view === "sessions" ? "nav-item active" : "nav-item"} onClick={() => setView("sessions")}><Monitor size={17} /><span>Sessions</span><small>{sessions.length}</small></button>
+          <button className={view === "users" ? "nav-item active" : "nav-item"} onClick={() => navigateToView("users")}><UsersRound size={17} /><span>User directory</span><small>{users.totalCount}</small></button>
+          <button className={view === "roles" ? "nav-item active" : "nav-item"} onClick={() => navigateToView("roles")}><Shield size={17} /><span>Roles</span><small>{roles.length}</small></button>
+          <button className={view === "sessions" ? "nav-item active" : "nav-item"} onClick={() => navigateToView("sessions")}><Monitor size={17} /><span>Sessions</span><small>{sessions.length}</small></button>
+          <button className={view === "security" ? "nav-item active" : "nav-item"} onClick={() => navigateToView("security")}><Settings2 size={17} /><span>Security</span></button>
         </nav>
         <div className="sidebar-bottom"><div className="policy-note"><ShieldCheck size={16} /><span><strong>Protected workspace</strong><small>Administrator policy active</small></span></div><div className="account-row"><span className="account-avatar">{session.email.slice(0, 1).toUpperCase()}</span><span className="account-email">{session.email}</span><button className="icon-button sidebar-signout" title="Sign out" aria-label="Sign out" onClick={signOut} disabled={busy}><LogOut size={16} /></button></div></div>
       </aside>
       <section className="main-panel">
-        <header className="topbar"><div className="breadcrumb"><span>Identity</span><i>/</i><strong>{view === "users" ? "User directory" : view === "roles" ? "Roles" : "Sessions"}</strong></div><div className="topbar-meta"><span className="console-label"><span className="online-dot" /> ADMIN CONSOLE</span><span className="topbar-email">{session.email}</span><button className="icon-button mobile-signout" title="Sign out" aria-label="Sign out" onClick={signOut}><LogOut size={16} /></button></div></header>
+        <header className="topbar"><div className="breadcrumb"><span>Identity</span><i>/</i><strong>{view === "users" ? "User directory" : view === "roles" ? "Roles" : view === "sessions" ? "Sessions" : "Security settings"}</strong></div><div className="topbar-meta"><span className="console-label"><span className="online-dot" /> ADMIN CONSOLE</span><span className="topbar-email">{session.email}</span><button className="icon-button mobile-signout" title="Sign out" aria-label="Sign out" onClick={signOut}><LogOut size={16} /></button></div></header>
         <div className="content-area">
           {(notice || error) && <div className={error ? "notice notice-error" : "notice notice-success"} role={error ? "alert" : "status"}><span>{error || notice}</span><button aria-label="Dismiss" onClick={() => { setError(""); setNotice(""); }}><X size={15} /></button></div>}
           {view === "users" ? <>
@@ -256,7 +282,7 @@ export default function AdminConsole() {
             <div className="page-heading"><div><p className="eyebrow">ACCESS GOVERNANCE</p><h1>Role catalog</h1><p className="subtle">Organize account access into clearly named roles.</p></div><button className="primary-button" onClick={() => setRoleDraft({ name: "", roleCode: "", description: "" })}><Plus size={16} /> New role</button></div>
             <div className="role-summary"><span className="role-summary-icon"><Shield size={17} /></span><span><strong>{roles.length} roles defined</strong><small>Administrator is protected from deletion.</small></span><span className="summary-end"><ShieldCheck size={16} /> Role-based access</span></div>
             <div className="role-grid">{roles.map((role) => <article className="role-card" key={role.id}><div className="role-card-head"><span className="role-card-icon"><KeyRound size={16} /></span><span className="role-code">{role.roleCode}</span><button className="icon-button" title={`Edit ${role.name}`} aria-label={`Edit ${role.name}`} onClick={() => setRoleDraft({ id: role.id, name: role.name, roleCode: role.roleCode, description: role.description })}><Pencil size={15} /></button></div><h2>{role.name}</h2><p>{role.description}</p><footer><span><UsersRound size={14} />{role.userCount} {role.userCount === 1 ? "member" : "members"}</span><button className="text-button" disabled={role.name === "Administrator" || role.userCount > 0} onClick={() => void deleteRole(role)}>Delete</button></footer></article>)}{!roles.length && <div className="empty-state role-empty"><Shield size={21} /><strong>No roles configured</strong><span>Create a role to organize access.</span></div>}</div>
-          </> : <>
+          </> : view === "sessions" ? <>
             <div className="page-heading"><div><p className="eyebrow">ACCOUNT SECURITY</p><h1>Active sessions</h1><p className="subtle">Review your recent sign-ins and remove devices you no longer use.</p></div><div className="heading-actions"><button className="secondary-button" onClick={() => void refreshSessions()} disabled={busy}>Refresh</button><button className="primary-button" onClick={() => void revokeOtherSessions()} disabled={busy || !sessions.some((session) => !session.isCurrent)}>Sign out other devices</button></div></div>
             <div className="table-shell"><div className="table-scroll"><table className="user-table session-table"><thead><tr><th>DEVICE</th><th>IP ADDRESS</th><th>FIRST SIGN-IN</th><th>LAST ACTIVE</th><th>EXPIRES</th><th>STATUS</th><th /></tr></thead><tbody>
               {sessions.map((loginSession) => <tr key={loginSession.sessionId}>
@@ -270,7 +296,7 @@ export default function AdminConsole() {
               </tr>)}
               {!sessions.length && <tr><td colSpan={7}><div className="empty-state"><Monitor size={21} /><strong>No active sessions</strong><span>Your current sign-in session will appear here.</span></div></td></tr>}
             </tbody></table></div></div>
-          </>}
+          </> : <AccountSecurity userId={session.userId} />}
           <footer className="page-footer"><span>STORE MANAGEMENT <i /> IDENTITY SERVICE</span><span>ACCESS OPERATIONS <ShieldCheck size={13} /></span></footer>
         </div>
       </section>

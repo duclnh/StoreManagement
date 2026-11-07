@@ -22,8 +22,14 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Frontend structure
 
-- `app/` contains Next.js routes, the root layout, global styles, and the identity API proxy.
-- `features/identity-admin/` contains the identity administration UI, API client, and feature types.
+- `app/` contains route groups: `(public)/login`, `(private)/dashboard`, and `(private)/settings`, plus the root redirect, layout, global styles, and identity API proxy.
+- `services/api-client.ts` contains shared HTTP and error handling; the identity BFF remains under `app/api/identity/` to keep auth tokens in HTTP-only cookies.
+- `features/identity-admin/` groups identity administration by responsibility:
+  - `api/*.api.ts` contains endpoint functions grouped by identity domain.
+  - `interfaces/` contains the domain and component contracts.
+  - `components/` contains the login, account security, workspace navigation, and administration UI.
+  - `locales/` contains the `next-intl` message catalogs.
+- `features/employees/` is an empty scaffold for employee UI, hooks, API, schemas, types, stores, constants, and utilities. Add files when employee requirements and API contracts are defined.
 
 ## Learn More
 

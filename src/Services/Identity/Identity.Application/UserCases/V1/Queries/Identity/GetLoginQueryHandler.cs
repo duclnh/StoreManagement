@@ -45,6 +45,13 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
             if (await _userManager.GetTwoFactorEnabledAsync(user))
             {
                 var code = request.TwoFactorCode?.Replace(" ", string.Empty).Replace("-", string.Empty);
+                if (string.IsNullOrWhiteSpace(code))
+                {
+                    return Result.Failure<Response.Authenticated>(new Error(
+                        "Identity.Authentication.TwoFactorRequired",
+                        "Enter the authenticator code to complete sign-in."));
+                }
+
                 var isValidCode = !string.IsNullOrWhiteSpace(code)
                     && await _userManager.VerifyTwoFactorTokenAsync(
                         user,
@@ -110,5 +117,4 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
 
     }
 }
-
 
