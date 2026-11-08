@@ -13,8 +13,13 @@ namespace Identity.Domain.Abstractions
         IAppUserRepository AppUserRepository { get; }
         IRepositoryBase<LoginSession, Guid> LoginSessionRepository { get; }
         IRolePermissionRepository RolePermissionRepository { get; }
+        IIdentityScopeRepository IdentityScopeRepository { get; }
         ISecurityAuditRepository SecurityAuditRepository { get; }
         IUserRoleAssignmentRepository UserRoleAssignmentRepository { get; }
+
+        Task ExecuteInSerializableTransactionAsync(
+            Func<CancellationToken, Task> operation,
+            CancellationToken cancellationToken = default);
 
         ///<summary>
         /// Call save change from db context

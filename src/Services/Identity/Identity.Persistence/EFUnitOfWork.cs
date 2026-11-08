@@ -5,6 +5,7 @@ using Identity.Domain.Repositories;
 using Identity.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System.Data;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,7 @@ namespace Identity.Persistence
             IRepositoryBase<LoginSession, Guid> loginSessionRepository,
             IAppUserRepository appUserRepository,
             IRolePermissionRepository rolePermissionRepository,
+            IIdentityScopeRepository identityScopeRepository,
             ISecurityAuditRepository securityAuditRepository,
             IUserRoleAssignmentRepository userRoleAssignmentRepository)
         {
@@ -30,6 +32,7 @@ namespace Identity.Persistence
             LoginSessionRepository = loginSessionRepository;
             AppUserRepository = appUserRepository;
             RolePermissionRepository = rolePermissionRepository;
+            IdentityScopeRepository = identityScopeRepository;
             SecurityAuditRepository = securityAuditRepository;
             UserRoleAssignmentRepository = userRoleAssignmentRepository;
         }
@@ -37,8 +40,20 @@ namespace Identity.Persistence
         public IAppUserRepository AppUserRepository { get; }
         public IRepositoryBase<LoginSession, Guid> LoginSessionRepository { get; }
         public IRolePermissionRepository RolePermissionRepository { get; }
+        public IIdentityScopeRepository IdentityScopeRepository { get; }
         public ISecurityAuditRepository SecurityAuditRepository { get; }
         public IUserRoleAssignmentRepository UserRoleAssignmentRepository { get; }
+
+        public async Task ExecuteInSerializableTransactionAsync(
+            Func<CancellationToken, Task> operation,
+            CancellationToken cancellationToken = default)
+        {
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(
+                IsolationLevel.Serializable,
+                cancellationToken);
+            await operation(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
 
         public async ValueTask DisposeAsync()
         {

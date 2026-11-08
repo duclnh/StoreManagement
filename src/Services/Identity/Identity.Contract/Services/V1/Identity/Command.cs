@@ -39,6 +39,12 @@ namespace Identity.Contract.Services.V1.Identity
             Guid TenantId,
             Guid ScopeId,
             List<PermissionGrant> Permissions) : ICommand<bool>;
+        public sealed record CreateIdentityTenant(string Name) : ICommand<Response.IdentityScope>;
+        public sealed record CreateIdentityOrganization(Guid TenantId, string Name) : ICommand<Response.IdentityScope>;
+        public sealed record CreateIdentityBranch(Guid TenantId, Guid OrganizationId, string Name) : ICommand<Response.IdentityScope>;
+        public sealed record SetIdentityTenantStatus(Guid TenantId, bool IsActive) : ICommand<bool>;
+        public sealed record SetIdentityOrganizationStatus(Guid TenantId, Guid OrganizationId, bool IsActive) : ICommand<bool>;
+        public sealed record SetIdentityBranchStatus(Guid TenantId, Guid OrganizationId, Guid BranchId, bool IsActive) : ICommand<bool>;
         public sealed record UpdateUserRequest(string FirstName, string LastName);
         public sealed record SetUserActiveRequest(bool IsActive);
         public sealed record AssignUserRolesRequest(List<string> Roles);

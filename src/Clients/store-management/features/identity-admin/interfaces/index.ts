@@ -12,7 +12,7 @@ export type { LoginScreenProps } from "./login-screen";
 export type { LoginSession, Session } from "./session";
 export type { SecurityAuditEvent, SecurityAuditPage } from "./security-audit";
 export type { Role, RoleDraft, RolePermission, SaveRoleRequest, SetRolePermissionsRequest } from "./role";
-export type { IdentityScope } from "./role";
+export type { IdentityScope, IdentityTenant } from "./role";
 export type {
   NewUserDraft,
   UpdateUserRequest,

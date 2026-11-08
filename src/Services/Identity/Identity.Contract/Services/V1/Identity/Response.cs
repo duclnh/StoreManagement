@@ -15,6 +15,7 @@
         {
             public Guid SessionId { get; set; }
             public string? UserAgent { get; set; }
+            public string DeviceCategory { get; set; } = "Computer";
             public string? IpAddress { get; set; }
             public DateTime CreatedAtUtc { get; set; }
             public DateTime LastActiveAtUtc { get; set; }
@@ -49,6 +50,8 @@
             int UserCount);
 
         public sealed record IdentityScope(Guid Id, string Name, int ScopeType, Guid? ParentId);
+        public sealed record IdentityTenant(Guid Id, string Name, bool IsActive, DateTimeOffset CreatedAtUtc);
+        public sealed record IdentityAdminScope(Guid Id, string Name, int ScopeType, Guid? ParentId, bool IsActive);
 
         public sealed record RolePermission(
             string FunctionId,

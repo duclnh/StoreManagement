@@ -7,6 +7,7 @@ export interface Session {
 export interface LoginSession {
   sessionId: string;
   userAgent: string | null;
+  deviceCategory: "Computer" | "Phone";
   ipAddress: string | null;
   createdAtUtc: string;
   lastActiveAtUtc: string;

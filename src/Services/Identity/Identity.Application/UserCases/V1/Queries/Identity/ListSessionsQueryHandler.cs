@@ -26,6 +26,7 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
                 {
                     SessionId = session.Id,
                     UserAgent = session.UserAgent,
+                    DeviceCategory = LoginDeviceClassifier.GetCategory(session.UserAgent),
                     IpAddress = session.IpAddress,
                     CreatedAtUtc = session.CreatedAtUtc.UtcDateTime,
                     LastActiveAtUtc = session.LastActiveAtUtc.UtcDateTime,

@@ -11,6 +11,14 @@ export interface IdentityScope {
   name: string;
   scopeType: number;
   parentId: string | null;
+  isActive: boolean;
+}
+
+export interface IdentityTenant {
+  id: string;
+  name: string;
+  isActive: boolean;
+  createdAtUtc: string;
 }
 
 export interface RoleDraft {

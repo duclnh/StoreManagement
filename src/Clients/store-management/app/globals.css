@@ -336,6 +336,33 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .audit-filters select { min-width: 190px; border: 1px solid #e1e8e3; border-radius: 8px; background: #fff; padding: 9px 11px; color: #28372f; font: inherit; }
 .text-button { border: 0; background: transparent; color: #a16a5c; cursor: pointer; font-size: 10px; }.text-button:disabled { color: #b5bdb8; }
 .role-empty { grid-column: 1/-1; border: 1px dashed #dbe2dc; border-radius: 7px; background: #fbfcfb; }
+.tenant-layout { display: grid; grid-template-columns: minmax(230px, .7fr) minmax(0, 1.6fr); align-items: start; gap: 14px; }
+.tenant-create-card, .tenant-tree-card { min-width: 0; border-radius: 10px; padding: 20px; box-shadow: 0 5px 16px rgba(24,45,36,.035); }
+.tenant-create-card h2, .tenant-section-heading h2 { margin: 14px 0 5px; font-size: 15px; font-weight: 650; }
+.tenant-create-card > p, .tenant-section-heading p { margin: 0; color: #77857d; font-size: 10px; line-height: 1.6; }
+.tenant-create-card .editor-form { gap: 14px; }
+.tenant-tree-card { display: grid; gap: 15px; }
+.tenant-section-heading { display: flex; align-items: flex-start; gap: 10px; }
+.tenant-section-heading h2 { margin: 2px 0 4px; }
+.tenant-select { display: grid; gap: 6px; color: #65756c; font-size: 10px; font-weight: 650; }
+.tenant-select select { width: 100%; min-height: 40px; border: 1px solid #dfe7e0; border-radius: 7px; background: white; padding: 0 11px; color: #28372f; font: inherit; }
+.tenant-tree { display: grid; gap: 12px; }
+.tenant-scope-row { min-width: 0; display: flex; align-items: center; gap: 10px; border: 1px solid #edf0ed; border-radius: 8px; background: #fff; padding: 10px 12px; }
+.tenant-root { border-color: #dfe9e1; background: #f9fcf9; }
+.tenant-scope-icon { width: 29px; height: 29px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 7px; background: #edf5ef; color: var(--forest); }
+.tenant-scope-details { min-width: 0; display: grid; gap: 4px; flex: 1; }
+.tenant-scope-details strong { overflow: hidden; color: #34443b; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.tenant-scope-details small { color: #8a9790; font-size: 8px; letter-spacing: .7px; }
+.tenant-scope-row .text-button { flex: 0 0 auto; }
+.tenant-organizations { display: grid; gap: 10px; }
+.tenant-organization { display: grid; gap: 8px; border-left: 2px solid #e8eee9; margin-left: 14px; padding-left: 12px; }
+.tenant-branches { display: grid; gap: 7px; margin-left: 15px; }
+.tenant-branch { min-height: 48px; }
+.tenant-inline-form { display: flex; gap: 8px; padding-left: 39px; }
+.tenant-inline-form input { min-width: 0; height: 38px; flex: 1; border: 1px solid #dfe7e0; border-radius: 7px; padding: 0 10px; color: #28372f; font: inherit; font-size: 10px; }
+.tenant-inline-form .secondary-button { min-height: 38px; padding: 0 11px; white-space: nowrap; }
+.tenant-branch-form { padding-left: 34px; }
+.tenant-empty { border: 1px dashed #dbe2dc; border-radius: 8px; padding: 20px; color: #87958d; font-size: 11px; text-align: center; }
 .security-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 14px; }
 .security-settings-card { min-width: 0; border: 1px solid var(--line); border-radius: 7px; background: white; padding: 18px; }
 .security-settings-heading { display: flex; align-items: flex-start; gap: 11px; }
@@ -505,6 +532,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
   .role-summary { padding: 9px; }
   .summary-end { display: none; }
   .role-grid { grid-template-columns: 1fr; }
+  .tenant-layout { grid-template-columns: 1fr; }
+  .tenant-create-card, .tenant-tree-card { padding: 16px; }
+  .tenant-scope-row { gap: 7px; padding: 8px; }
+  .tenant-scope-row .status { display: none; }
+  .tenant-inline-form { padding-left: 0; }
+  .tenant-inline-form .secondary-button { padding: 0 8px; font-size: 9px; }
+  .tenant-organization { margin-left: 5px; padding-left: 8px; }
+  .tenant-branches { margin-left: 4px; }
   .page-footer { gap: 10px; font-size: 7px; letter-spacing: .45px; }
   .editor-panel, .dialog-panel { padding: 21px 17px; }
   .form-pair { grid-template-columns: 1fr; gap: 17px; }

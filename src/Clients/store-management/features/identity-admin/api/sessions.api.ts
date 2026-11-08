@@ -24,6 +24,7 @@ function isLoginSession(value: unknown): value is LoginSession {
   const session = value as Record<string, unknown>;
   return typeof session.sessionId === "string"
     && (typeof session.userAgent === "string" || session.userAgent === null)
+    && (session.deviceCategory === "Computer" || session.deviceCategory === "Phone")
     && (typeof session.ipAddress === "string" || session.ipAddress === null)
     && typeof session.createdAtUtc === "string"
     && typeof session.lastActiveAtUtc === "string"

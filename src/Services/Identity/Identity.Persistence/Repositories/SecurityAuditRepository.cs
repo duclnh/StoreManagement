@@ -55,6 +55,19 @@ namespace Identity.Persistence.Repositories
                 details));
         }
 
+        public async Task<string?> GetLatestSuccessfulLoginIpAsync(
+            Guid userId,
+            CancellationToken cancellationToken) =>
+            await _dbContext.Set<SecurityAuditEvent>()
+                .AsNoTracking()
+                .Where(item => item.SubjectUserId == userId
+                    && item.EventType == SecurityAuditEventTypes.Login
+                    && item.Outcome == SecurityAuditOutcomes.Succeeded
+                    && item.IpAddress != null)
+                .OrderByDescending(item => item.OccurredAtUtc)
+                .Select(item => item.IpAddress)
+                .FirstOrDefaultAsync(cancellationToken);
+
         public async Task<SecurityAuditPage> GetPageAsync(
             SecurityAuditFilter filter,
             CancellationToken cancellationToken)

@@ -13,11 +13,15 @@ const identityHttpClient = axios.create({
 });
 
 export async function identityRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  const selectedTenantId = typeof window === "undefined"
+    ? null
+    : window.localStorage.getItem("identity-admin-active-tenant");
   const config: AxiosRequestConfig = {
     url: path,
     method: init?.method ?? "GET",
     data: init?.body,
     headers: {
+      ...(selectedTenantId ? { "X-Tenant-Id": selectedTenantId } : {}),
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
       ...Object.fromEntries(new Headers(init?.headers).entries()),
     },

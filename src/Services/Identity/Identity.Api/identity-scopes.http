@@ -1,0 +1,86 @@
+@api = http://localhost:5168/api/v1/admin
+@adminToken = <administrator-access-token>
+@tenantId = 11111111-1111-1111-1111-111111111111
+
+### List tenants, including inactive tenants
+GET {{api}}/tenants
+Authorization: Bearer {{adminToken}}
+
+### Create a tenant
+# @name createTenant
+POST {{api}}/tenants
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Northwind Retail"
+}
+
+### Create an organization
+# @name createOrganization
+POST {{api}}/tenants/{{tenantId}}/organizations
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Northwind Downtown"
+}
+
+### Create a branch under the organization returned above
+# @name createBranch
+POST {{api}}/tenants/{{tenantId}}/organizations/{{createOrganization.response.body.$.id}}/branches
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Central Branch"
+}
+
+### Read a scope
+GET {{api}}/scopes/{{createBranch.response.body.$.id}}
+Authorization: Bearer {{adminToken}}
+
+### Disable the branch
+PUT {{api}}/tenants/{{tenantId}}/organizations/{{createOrganization.response.body.$.id}}/branches/{{createBranch.response.body.$.id}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "isActive": false
+}
+
+### Re-enable the organization
+PUT {{api}}/tenants/{{tenantId}}/organizations/{{createOrganization.response.body.$.id}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "isActive": true
+}
+
+### Disable the tenant
+PUT {{api}}/tenants/{{tenantId}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "isActive": false
+}
+
+### Duplicate tenant returns 409
+POST {{api}}/tenants
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Legacy"
+}
+
+### An unavailable parent tenant returns 404
+POST {{api}}/tenants/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/organizations
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Orphan Organization"
+}

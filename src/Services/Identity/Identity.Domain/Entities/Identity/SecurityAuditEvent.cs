@@ -59,6 +59,10 @@ namespace Identity.Domain.Entities.Identity
         public const string RoleUpdated = "Roles.Updated";
         public const string RoleDeleted = "Roles.Deleted";
         public const string RolePermissionsChanged = "Roles.PermissionsChanged";
+        public const string ScopeCreated = "IdentityScope.Created";
+        public const string ScopeStatusChanged = "IdentityScope.StatusChanged";
+        public const string NewLoginIp = "SecurityAnomaly.NewLoginIp";
+        public const string DeviceSessionReplaced = "Authentication.DeviceSessionReplaced";
     }
 
     public static class SecurityAuditOutcomes

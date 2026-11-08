@@ -22,6 +22,9 @@ namespace Identity.Contract.Services.V1.Identity
         public record GetUserRoles(Guid UserId, Guid TenantId, Guid ScopeId) : IQuery<List<string>>;
         public record GetRoles() : IQuery<List<Response.AdminRole>>;
         public record GetIdentityScopes(Guid TenantId) : IQuery<List<Response.IdentityScope>>;
+        public record GetIdentityTenants() : IQuery<List<Response.IdentityTenant>>;
+        public record GetIdentityScope(Guid ScopeId) : IQuery<Response.IdentityScope?>;
+        public record GetTenantScopes(Guid TenantId) : IQuery<List<Response.IdentityAdminScope>>;
         public record GetRolePermissions(Guid RoleId, Guid TenantId, Guid ScopeId) : IQuery<List<Response.RolePermission>>;
         public record GetSecurityAuditEvents(
             DateTimeOffset? FromUtc,

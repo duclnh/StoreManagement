@@ -76,6 +76,7 @@ namespace Identity.Persistence.DependencyInjections.Extensions
             services.AddTransient(typeof(IRepositoryBase<,>), typeof(RepositoryBase<,>));
             services.AddTransient<IAppUserRepository, AppUserRepository>();
             services.AddTransient<IRolePermissionRepository, RolePermissionRepository>();
+            services.AddTransient<IIdentityScopeRepository, IdentityScopeRepository>();
             services.AddTransient<ISecurityAuditRepository, SecurityAuditRepository>();
             services.AddTransient<IUserRoleAssignmentRepository, UserRoleAssignmentRepository>();
             services.AddScoped<IIdentityTenantContext, IdentityTenantContext>();

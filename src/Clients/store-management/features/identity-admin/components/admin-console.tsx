@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Check, ClipboardList, Globe2, KeyRound, LogOut, Monitor, Pencil, Plus, Search, Settings2, Shield, ShieldCheck, UsersRound, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2, Check, ClipboardList, Globe2, KeyRound, LogOut, Monitor, Pencil, Plus, Search, Settings2, Shield, ShieldCheck, UsersRound, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useDeferredValue, useEffect, useState, type FormEvent } from "react";
+import { useDeferredValue, useEffect, useRef, useState, type FormEvent } from "react";
 import { useAppLocale } from "@/app/providers";
 import { IdentityApiError } from "@/services/api-client";
 import type { LoginCredentialsValues, TwoFactorCodeValues } from "../schemas/login.schema";
@@ -12,6 +12,7 @@ import {
   deleteRole as removeRole,
   getRolePermissions,
   listIdentityScopes,
+  listIdentityTenants,
   listRoles,
   saveRole as persistRole,
   setRolePermissions as persistRolePermissions,
@@ -33,9 +34,10 @@ import {
 } from "../api/users.api";
 import AccountSecurity from "./account-security";
 import LoginScreen from "./login-screen";
+import TenantManagement from "./tenant-management";
 import { useWorkspaceView, type WorkspaceView } from "./workspace-view-provider";
 import { formatSessionDate, getSessionDeviceLabel } from "../utils/session-display";
-import type { AdminConsoleProps, IdentityScope, LoginRequest, LoginSession, NewUserDraft, Role, RoleDraft, RolePermission, SecurityAuditPage, Session, User, UserPage } from "../interfaces";
+import type { AdminConsoleProps, IdentityScope, IdentityTenant, LoginRequest, LoginSession, NewUserDraft, Role, RoleDraft, RolePermission, SecurityAuditPage, Session, User, UserPage } from "../interfaces";
 
 const permissionFunctionLabels: Record<string, "permissions.functions.users" | "permissions.functions.roles" | "permissions.functions.sessions" | "permissions.functions.security" | "permissions.functions.other"> = {
   "Identity.Users": "permissions.functions.users",
@@ -53,7 +55,7 @@ const permissionActionLabels: Record<string, "permissions.actions.view" | "permi
   Revoke: "permissions.actions.revoke",
 };
 
-const securityAuditEventLabels: Record<string, "audit.events.login" | "audit.events.logout" | "audit.events.sessionsRevoked" | "audit.events.passwordChanged" | "audit.events.passwordReset" | "audit.events.emailConfirmed" | "audit.events.twoFactorEnabled" | "audit.events.twoFactorDisabled" | "audit.events.userCreated" | "audit.events.userUpdated" | "audit.events.userStatusChanged" | "audit.events.userRolesChanged" | "audit.events.roleCreated" | "audit.events.roleUpdated" | "audit.events.roleDeleted" | "audit.events.rolePermissionsChanged" | "audit.events.unknown"> = {
+const securityAuditEventLabels: Record<string, "audit.events.login" | "audit.events.logout" | "audit.events.sessionsRevoked" | "audit.events.passwordChanged" | "audit.events.passwordReset" | "audit.events.emailConfirmed" | "audit.events.twoFactorEnabled" | "audit.events.twoFactorDisabled" | "audit.events.userCreated" | "audit.events.userUpdated" | "audit.events.userStatusChanged" | "audit.events.userRolesChanged" | "audit.events.roleCreated" | "audit.events.roleUpdated" | "audit.events.roleDeleted" | "audit.events.rolePermissionsChanged" | "audit.events.scopeCreated" | "audit.events.scopeStatusChanged" | "audit.events.newLoginIp" | "audit.events.deviceSessionReplaced" | "audit.events.unknown"> = {
   "Authentication.Login": "audit.events.login",
   "Authentication.Logout": "audit.events.logout",
   "Authentication.SessionsRevoked": "audit.events.sessionsRevoked",
@@ -70,12 +72,16 @@ const securityAuditEventLabels: Record<string, "audit.events.login" | "audit.eve
   "Roles.Updated": "audit.events.roleUpdated",
   "Roles.Deleted": "audit.events.roleDeleted",
   "Roles.PermissionsChanged": "audit.events.rolePermissionsChanged",
+  "IdentityScope.Created": "audit.events.scopeCreated",
+  "IdentityScope.StatusChanged": "audit.events.scopeStatusChanged",
+  "SecurityAnomaly.NewLoginIp": "audit.events.newLoginIp",
+  "Authentication.DeviceSessionReplaced": "audit.events.deviceSessionReplaced",
 };
 
 export default function AdminConsole({ mode }: AdminConsoleProps) {
   const router = useRouter();
   const { locale, setLocale } = useAppLocale();
-  const { view, setView } = useWorkspaceView();
+  const { view, setView, activeTenantId, setActiveTenantId } = useWorkspaceView();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -87,6 +93,9 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
   const [users, setUsers] = useState<UserPage>(emptyUserPage);
   const [roles, setRoles] = useState<Role[]>([]);
   const [scopes, setScopes] = useState<IdentityScope[]>([]);
+  const [tenantOptions, setTenantOptions] = useState<IdentityTenant[]>([]);
+  const [loadedTenantDataKey, setLoadedTenantDataKey] = useState("");
+  const loadedTenantDataKeyRef = useRef("");
   const [selectedScopeId, setSelectedScopeId] = useState("");
   const [sessions, setSessions] = useState<LoginSession[]>([]);
   const [auditPage, setAuditPage] = useState<SecurityAuditPage>({ items: [], page: 1, pageSize: 50, totalCount: 0 });
@@ -143,6 +152,26 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
   useEffect(() => {
     if (!session?.authenticated || mode !== "dashboard") return;
     let mounted = true;
+    listIdentityTenants()
+      .then((items) => {
+        if (!mounted) return;
+        setTenantOptions(items);
+        if (!items.some((tenant) => tenant.id === activeTenantId)) {
+          setActiveTenantId(items[0]?.id ?? "");
+        }
+      })
+      .catch((cause: unknown) => {
+        if (!mounted) return;
+        setTenantOptions([]);
+        setError(cause instanceof Error ? cause.message : a("tenants.loadError"));
+      });
+    return () => { mounted = false; };
+  }, [a, activeTenantId, mode, session?.authenticated, setActiveTenantId]);
+
+  useEffect(() => {
+    if (!session?.authenticated || mode !== "dashboard") return;
+    let mounted = true;
+    const dataKey = `${session.userId ?? ""}:${activeTenantId}`;
     Promise.all([
       listUsers(searchQuery, page),
       listRoles(),
@@ -150,18 +179,34 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
       listIdentityScopes(),
     ]).then(([userPage, roleList, loginSessions, scopeList]) => {
       if (mounted) {
+        if (loadedTenantDataKeyRef.current !== dataKey) {
+          loadedTenantDataKeyRef.current = dataKey;
+          setSelectedScopeId("");
+          setSelectedUser(null);
+          setSelectedRoles([]);
+          setOriginalScopeRoles([]);
+          setNewUserDraft(null);
+          setRoleDraft(null);
+          setPermissionRole(null);
+          setRolePermissions([]);
+          setAuditPage({ items: [], page: 1, pageSize: 50, totalCount: 0 });
+          setAuditPageNumber(1);
+        }
         setUsers(userPage);
         setRoles(roleList);
         setSessions(loginSessions);
         setScopes(scopeList);
-        setSelectedScopeId(current => current || scopeList.find(scope => scope.scopeType === 1)?.id || "");
+        setLoadedTenantDataKey(dataKey);
+        setSelectedScopeId(current => scopeList.some(scope => scope.id === current)
+          ? current
+          : scopeList.find(scope => scope.scopeType === 1)?.id || "");
         setError("");
       }
     }).catch((cause: unknown) => {
       if (mounted) setError(cause instanceof Error ? cause.message : a("notice.usersLoadError"));
     });
     return () => { mounted = false; };
-  }, [a, mode, session?.authenticated, searchQuery, page]);
+  }, [a, mode, session?.authenticated, session?.userId, searchQuery, page, activeTenantId]);
 
   useEffect(() => {
     if (!session?.authenticated || mode !== "dashboard" || view !== "audit") return;
@@ -171,7 +216,7 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
       .catch(cause => { if (mounted) setError(cause instanceof Error ? cause.message : a("audit.loadError")); })
       .finally(() => { if (mounted) setAuditLoading(false); });
     return () => { mounted = false; };
-  }, [a, auditEventType, auditOutcome, auditPageNumber, auditRefresh, mode, session?.authenticated, view]);
+  }, [a, activeTenantId, auditEventType, auditOutcome, auditPageNumber, auditRefresh, mode, session?.authenticated, view]);
 
   async function loadUsers() {
     setUsers(await listUsers(searchQuery, page));
@@ -275,7 +320,7 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
       setOriginalScopeRoles(assignedRoles);
     } catch (cause) {
       setSelectedUser(null);
-      setError(cause instanceof Error ? cause.message : a("users.usersLoadError"));
+      setError(cause instanceof Error ? cause.message : a("notice.usersLoadError"));
     }
   }
 
@@ -429,15 +474,22 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
           <button className={view === "sessions" ? "nav-item active" : "nav-item"} onClick={() => navigateToView("sessions")}><Monitor size={17} /><span>{a("navigation.sessions")}</span><small>{sessions.length}</small></button>
           <button className={view === "security" ? "nav-item active" : "nav-item"} onClick={() => navigateToView("security")}><Settings2 size={17} /><span>{a("navigation.security")}</span></button>
           <button className={view === "audit" ? "nav-item active" : "nav-item"} onClick={() => navigateToView("audit")}><ClipboardList size={17} /><span>{a("navigation.audit")}</span></button>
+          <button className={view === "tenants" ? "nav-item active" : "nav-item"} onClick={() => navigateToView("tenants")}><Building2 size={17} /><span>{a("navigation.tenants")}</span></button>
         </nav>
         <div className="sidebar-bottom"><div className="policy-note"><ShieldCheck size={16} /><span><strong>{a("navigation.protected")}</strong><small>{a("navigation.policy")}</small></span></div><div className="account-row"><span className="account-avatar">{session.email.slice(0, 1).toUpperCase()}</span><span className="account-email">{session.email}</span><button className="icon-button sidebar-signout" title={a("navigation.signOut")} aria-label={a("navigation.signOut")} onClick={signOut} disabled={busy}><LogOut size={16} /></button></div></div>
       </aside>
       <section className="main-panel">
         <header className="topbar">
-          <div className="breadcrumb"><span>{a("identity")}</span><i>/</i><strong>{view === "users" ? a("users.breadcrumb") : view === "roles" ? a("navigation.roles") : view === "sessions" ? a("navigation.sessions") : view === "audit" ? a("audit.title") : a("security.title")}</strong></div>
+          <div className="breadcrumb"><span>{a("identity")}</span><i>/</i><strong>{view === "users" ? a("users.breadcrumb") : view === "roles" ? a("navigation.roles") : view === "sessions" ? a("navigation.sessions") : view === "audit" ? a("audit.title") : view === "tenants" ? a("tenants.title") : a("security.title")}</strong></div>
           <div className="topbar-meta">
             <div className="admin-language" role="group" aria-label={a("language")}><Globe2 size={15} /><button type="button" aria-label={a("vietnamese")} aria-pressed={locale === "vi"} onClick={() => setLocale("vi")}>VI</button><span>/</span><button type="button" aria-label={a("english")} aria-pressed={locale === "en"} onClick={() => setLocale("en")}>EN</button></div>
-            {scopes.length > 0 && <label className="scope-picker"><span>{a("scope.label")}</span><select aria-label={a("scope.label")} value={selectedScopeId} onChange={(event) => {
+            {tenantOptions.length > 1 && <label className="scope-picker"><span>{a("tenants.activeTenant")}</span><select aria-label={a("tenants.activeTenant")} value={tenantOptions.some(tenant => tenant.id === activeTenantId) ? activeTenantId : tenantOptions[0].id} onChange={(event) => {
+              setActiveTenantId(event.target.value);
+              setSelectedScopeId("");
+              setSelectedUser(null);
+              setPermissionRole(null);
+            }}>{tenantOptions.map(tenant => <option key={tenant.id} value={tenant.id}>{tenant.name}</option>)}</select></label>}
+            {view !== "tenants" && loadedTenantDataKey === `${session.userId ?? ""}:${activeTenantId}` && scopes.length > 0 && <label className="scope-picker"><span>{a("scope.label")}</span><select aria-label={a("scope.label")} value={selectedScopeId} onChange={(event) => {
               setSelectedScopeId(event.target.value);
               setSelectedUser(null);
               setPermissionRole(null);
@@ -447,7 +499,9 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
         </header>
         <div className="content-area">
           {(notice || error) && <div className={error ? "notice notice-error" : "notice notice-success"} role={error ? "alert" : "status"}><span>{error || notice}</span><button aria-label={a("common.dismiss")} onClick={() => { setError(""); setNotice(""); }}><X size={15} /></button></div>}
-          {view === "users" ? <>
+          {view === "tenants" ? <TenantManagement /> : loadedTenantDataKey !== `${session.userId ?? ""}:${activeTenantId}` ? (
+            <div className="tenant-empty" role="status">{a("common.loadingWorkspace")}</div>
+          ) : view === "users" ? <>
             <div className="page-heading"><div><p className="eyebrow">{a("users.eyebrow")}</p><h1>{a("users.title")}</h1><p className="subtle">{a("users.description")}</p></div><div className="heading-actions"><div className="total-stat"><strong>{users.totalCount.toLocaleString()}</strong><span>{a("users.accounts")}</span></div><button className="primary-button" onClick={() => setNewUserDraft({ email: "", firstName: "", lastName: "", password: "", roles: [] })}><Plus size={15} /> {a("users.new")}</button></div></div>
             <div className="toolbar"><label className="search-field"><Search size={16} /><input aria-label={a("users.searchLabel")} placeholder={a("users.search")} value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} /></label><div className="live-label"><span className="online-dot" /> {a("users.live")} <button className="refresh-button" onClick={() => void loadUsers()}>{a("common.refresh")}</button></div></div>
             <div className="table-shell"><div className="table-scroll"><table className="user-table"><thead><tr><th>{a("users.member")}</th><th>{a("users.roleAccess")}</th><th>{a("users.security")}</th><th>{a("users.status")}</th><th /></tr></thead><tbody>
@@ -468,7 +522,7 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
             <div className="page-heading"><div><p className="eyebrow">{a("sessions.eyebrow")}</p><h1>{a("sessions.title")}</h1><p className="subtle">{a("sessions.description")}</p></div><div className="heading-actions"><button className="secondary-button" onClick={() => void refreshSessions()} disabled={busy}>{a("common.refresh")}</button><button className="primary-button" onClick={() => void revokeOtherSessions()} disabled={busy || !sessions.some((session) => !session.isCurrent)}>{a("sessions.signOutOthers")}</button></div></div>
             <div className="table-shell"><div className="table-scroll"><table className="user-table session-table"><thead><tr><th>{a("sessions.device")}</th><th>{a("sessions.ipAddress")}</th><th>{a("sessions.firstSignIn")}</th><th>{a("sessions.lastActive")}</th><th>{a("sessions.expires")}</th><th>{a("sessions.status")}</th><th /></tr></thead><tbody>
               {sessions.map((loginSession) => <tr key={loginSession.sessionId}>
-                <td><div className="member"><span className="member-avatar avatar-3"><Monitor size={16} /></span><span><strong>{getSessionDeviceLabel(loginSession.userAgent, a("common.unknown")).browser}</strong><small>{getSessionDeviceLabel(loginSession.userAgent, a("common.unknown")).operatingSystem} · {loginSession.isCurrent ? a("sessions.thisDevice") : a("sessions.otherDevice")}</small></span></div></td>
+                <td><div className="member"><span className="member-avatar avatar-3"><Monitor size={16} /></span><span><strong>{getSessionDeviceLabel(loginSession.userAgent, a("common.unknown")).browser}</strong><small>{a(loginSession.deviceCategory === "Phone" ? "sessions.phone" : "sessions.computer")} · {getSessionDeviceLabel(loginSession.userAgent, a("common.unknown")).operatingSystem} · {loginSession.isCurrent ? a("sessions.thisDevice") : a("sessions.otherDevice")}</small></span></div></td>
                 <td>{loginSession.ipAddress || a("common.unavailable")}</td>
                 <td>{formatSessionDate(loginSession.createdAtUtc, locale, a("common.unknown"))}</td>
                 <td>{formatSessionDate(loginSession.lastActiveAtUtc, locale, a("common.unknown"))}</td>

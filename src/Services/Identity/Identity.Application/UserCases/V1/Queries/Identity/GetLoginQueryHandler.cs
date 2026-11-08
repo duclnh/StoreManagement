@@ -5,6 +5,7 @@ using Identity.Contract.Services.V1.Identity;
 using Identity.Domain.Abstractions;
 using Identity.Domain.Entities.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Identity.Application.UserCases.V1.Commands.Identity;
 
@@ -84,21 +85,62 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
             var refreshToken = _jwtTokenService.GenerateRefreshToken();
             var now = DateTimeOffset.UtcNow;
             var refreshTokenExpiry = now.AddDays(30);
-            _unitOfWork.LoginSessionRepository.Add(new LoginSession(
-                sessionId,
-                user.Id,
-                HashToken(refreshToken),
-                request.UserAgent,
-                request.IpAddress,
-                now,
-                refreshTokenExpiry));
-            _unitOfWork.SecurityAuditRepository.Record(
-                SecurityAuditEventTypes.Login,
-                SecurityAuditOutcomes.Succeeded,
-                user.Id,
-                sessionId: sessionId,
-                tenantId: user.TenantId);
-            await _unitOfWork.SaveChangeAsync(cancellationToken);
+            var deviceCategory = LoginDeviceClassifier.GetCategory(request.UserAgent);
+
+            await _unitOfWork.ExecuteInSerializableTransactionAsync(async transactionToken =>
+            {
+                var activeSessions = await _unitOfWork.LoginSessionRepository
+                    .FindAll(session => session.UserId == user.Id
+                        && !session.IsRevoked
+                        && session.ExpiresAtUtc > now)
+                    .ToListAsync(transactionToken);
+                foreach (var activeSession in activeSessions.Where(
+                    session => LoginDeviceClassifier.GetCategory(session.UserAgent) == deviceCategory))
+                {
+                    activeSession.Revoke(now);
+                    _unitOfWork.LoginSessionRepository.Update(activeSession);
+                    _unitOfWork.SecurityAuditRepository.Record(
+                        SecurityAuditEventTypes.DeviceSessionReplaced,
+                        SecurityAuditOutcomes.Succeeded,
+                        user.Id,
+                        deviceCategory,
+                        activeSession.Id,
+                        user.TenantId);
+                }
+
+                _unitOfWork.LoginSessionRepository.Add(new LoginSession(
+                    sessionId,
+                    user.Id,
+                    HashToken(refreshToken),
+                    request.UserAgent,
+                    request.IpAddress,
+                    now,
+                    refreshTokenExpiry));
+
+                var previousIpAddress = string.IsNullOrWhiteSpace(request.IpAddress)
+                    ? null
+                    : await _unitOfWork.SecurityAuditRepository.GetLatestSuccessfulLoginIpAsync(
+                        user.Id,
+                        transactionToken);
+                _unitOfWork.SecurityAuditRepository.Record(
+                    SecurityAuditEventTypes.Login,
+                    SecurityAuditOutcomes.Succeeded,
+                    user.Id,
+                    sessionId: sessionId,
+                    tenantId: user.TenantId);
+                if (previousIpAddress is not null
+                    && !string.Equals(previousIpAddress, request.IpAddress, StringComparison.OrdinalIgnoreCase))
+                {
+                    _unitOfWork.SecurityAuditRepository.Record(
+                        SecurityAuditEventTypes.NewLoginIp,
+                        SecurityAuditOutcomes.Succeeded,
+                        user.Id,
+                        "LoginFromNewIp",
+                        sessionId,
+                        user.TenantId);
+                }
+                await _unitOfWork.SaveChangeAsync(transactionToken);
+            }, cancellationToken);
 
             return Result.Success(await CreateAuthenticatedResponseAsync(user, sessionId, refreshToken, refreshTokenExpiry));
         }

@@ -27,6 +27,8 @@ namespace Identity.Domain.Repositories
             Guid? sessionId = null,
             Guid? tenantId = null);
 
+        Task<string?> GetLatestSuccessfulLoginIpAsync(Guid userId, CancellationToken cancellationToken);
+
         Task<SecurityAuditPage> GetPageAsync(SecurityAuditFilter filter, CancellationToken cancellationToken);
     }
 }
