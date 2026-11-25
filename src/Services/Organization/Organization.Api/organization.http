@@ -1,0 +1,96 @@
+@baseUrl = http://localhost:5102
+@token = REPLACE_WITH_IDENTITY_ACCESS_TOKEN
+@tenantId = 11111111-1111-1111-1111-111111111111
+@organizationId = REPLACE_WITH_ORGANIZATION_ID
+@branchId = REPLACE_WITH_BRANCH_ID
+@userId = REPLACE_WITH_IDENTITY_USER_ID
+
+### System Administrator creates tenant
+POST {{baseUrl}}/api/v1/tenants
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "code": "CUSTOMER-A",
+    "name": "Customer A",
+    "contactEmail": "owner@example.com",
+    "contactPhone": null,
+    "configurationJson": "{}",
+    "status": true
+}
+
+### Search tenants
+GET {{baseUrl}}/api/v1/tenants?search=CUSTOMER&page=1&pageSize=20
+Authorization: Bearer {{token}}
+
+### Create organization
+POST {{baseUrl}}/api/v1/organizations?tenantId={{tenantId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "code": "ORG-A",
+    "name": "Company A",
+    "businessType": "GENERAL_RETAIL",
+    "currency": "VND",
+    "timeZone": "Asia/Ho_Chi_Minh",
+    "language": "vi",
+    "status": true
+}
+
+### Create branch
+POST {{baseUrl}}/api/v1/organizations/{{organizationId}}/branches
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "code": "BRANCH-A",
+    "name": "Branch A",
+    "isDefault": true,
+    "status": true
+}
+
+### Create warehouse (structure only)
+POST {{baseUrl}}/api/v1/branches/{{branchId}}/warehouses
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "code": "MAIN",
+    "name": "Main warehouse",
+    "warehouseType": "MAIN",
+    "isDefault": true,
+    "status": true
+}
+
+### Create POS
+POST {{baseUrl}}/api/v1/branches/{{branchId}}/pos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "code": "POS-01",
+    "name": "Counter 1",
+    "description": "Front counter",
+    "status": true
+}
+
+### Assign branch member
+POST {{baseUrl}}/api/v1/branches/{{branchId}}/members
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "userId": "{{userId}}",
+    "isDefault": false,
+    "status": true
+}
+
+### Deactivate branch
+PATCH {{baseUrl}}/api/v1/branches/{{branchId}}/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "status": false
+}

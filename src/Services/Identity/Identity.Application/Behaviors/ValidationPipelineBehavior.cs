@@ -1,4 +1,4 @@
-﻿using Identity.Contract.Abstraction.Shared;
+﻿using BuildingBlocks.Contracts.Shared;
 using FluentValidation;
 using MediatR;
 using System;

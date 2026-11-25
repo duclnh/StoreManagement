@@ -6,6 +6,8 @@ import { Toaster } from "sonner";
 import { createContext, useCallback, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import enMessages from "@/features/identity-admin/locales/en.json";
 import viMessages from "@/features/identity-admin/locales/vi.json";
+import enOrganizationMessages from "@/features/organization/locales/en.json";
+import viOrganizationMessages from "@/features/organization/locales/vi.json";
 
 export type AppLocale = "en" | "vi";
 
@@ -14,7 +16,10 @@ type LocaleContextValue = {
   setLocale: (locale: AppLocale) => void;
 };
 
-const messages = { en: enMessages, vi: viMessages };
+const messages = {
+  en: { ...enMessages, ...enOrganizationMessages },
+  vi: { ...viMessages, ...viOrganizationMessages },
+};
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
 function getStoredLocale(): AppLocale {

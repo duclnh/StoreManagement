@@ -1,4 +1,4 @@
-﻿using Identity.Contract.Abstraction.Message;
+﻿using BuildingBlocks.Contracts.Message;
 
 
 namespace Identity.Contract.Services.V1.Identity

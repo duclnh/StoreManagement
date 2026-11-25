@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="../../../BuildingBlocks/BuildingBlocks.Contracts/BuildingBlocks.Contracts.csproj" />
+        <PackageReference Include="FluentValidation" Version="11.8.1" />
+        <PackageReference Include="MediatR" Version="12.2.0" />
+    </ItemGroup>
+</Project>

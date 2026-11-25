@@ -1,4 +1,5 @@
-﻿using Identity.Contract.Abstraction.Message;
+﻿using BuildingBlocks.Contracts.Message;
+using Identity.Contract.Abstraction.Message;
 using Identity.Persistence;
 using Identity.Persistence.Outbox;
 using MassTransit;

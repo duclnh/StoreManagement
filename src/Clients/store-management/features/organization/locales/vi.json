@@ -1,0 +1,6 @@
+{
+    "eyebrow": "VẬN HÀNH CỬA HÀNG", "title": "Danh mục tổ chức", "description": "Quản lý tenant, tổ chức, chi nhánh, kho và điểm bán.",
+    "refresh": "Làm mới", "search": "Tìm kiếm", "resource": "Loại dữ liệu", "tenant": "Tenant", "organization": "Tổ chức", "branch": "Chi nhánh", "create": "Tạo mới", "edit": "Chỉnh sửa", "code": "Mã", "name": "Tên", "status": "Trạng thái", "actions": "Thao tác", "emptyTitle": "Không tìm thấy dữ liệu", "saved": "Đã lưu thay đổi.", "saveError": "Không thể lưu thay đổi.", "active": "Đang hoạt động", "inactive": "Ngừng hoạt động", "enable": "Kích hoạt", "disable": "Ngừng kích hoạt", "cancel": "Hủy", "save": "Lưu",
+    "resources": { "tenants": "Tenant", "organizations": "Tổ chức", "branches": "Chi nhánh", "warehouses": "Kho", "pos": "Điểm bán" },
+    "fields": { "code": "Mã", "name": "Tên", "contactEmail": "Email liên hệ", "contactPhone": "Điện thoại liên hệ", "businessType": "Loại hình kinh doanh", "industry": "Ngành nghề", "taxCode": "Mã số thuế", "address": "Địa chỉ", "phone": "Điện thoại", "email": "Email", "currency": "Tiền tệ", "timeZone": "Múi giờ", "language": "Ngôn ngữ", "managerUserId": "Mã người quản lý", "isDefault": "Mặc định", "warehouseType": "Loại kho", "description": "Mô tả" }
+}

@@ -1,5 +1,5 @@
-﻿using Identity.Contract.Abstraction.Message;
-using Identity.Contract.Abstraction.Shared;
+﻿using BuildingBlocks.Contracts.Message;
+using BuildingBlocks.Contracts.Shared;
 using MediatR;
 using static Identity.Contract.Services.V1.Identity.Response;
 

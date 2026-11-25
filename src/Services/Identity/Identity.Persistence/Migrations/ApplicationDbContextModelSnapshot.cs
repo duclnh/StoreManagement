@@ -18,9 +18,6 @@ namespace Identity.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.17")
-                .HasAnnotation("Proxies:ChangeTracking", false)
-                .HasAnnotation("Proxies:CheckEquality", false)
-                .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -217,8 +214,7 @@ namespace Identity.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrganizationId", "Name")
-                        .IsUnique();
+                    b.HasIndex("OrganizationId", "Name");
 
                     b.ToTable("Branches", (string)null);
                 });
@@ -264,9 +260,6 @@ namespace Identity.Persistence.Migrations
 
             modelBuilder.Entity("Identity.Domain.Entities.Identity.LoginSession", b =>
                 {
-                    b.Property<string>("PreviousRefreshTokenHash").HasMaxLength(64).HasColumnType("nvarchar(64)");
-                    b.Property<string>("ProtectedRefreshToken").HasMaxLength(1024).HasColumnType("nvarchar(1024)");
-                    b.Property<DateTimeOffset?>("RefreshRetryUntilUtc").HasColumnType("datetimeoffset");
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
@@ -288,6 +281,17 @@ namespace Identity.Persistence.Migrations
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset>("LastActiveAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("PreviousRefreshTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("ProtectedRefreshToken")
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.Property<DateTimeOffset?>("RefreshRetryUntilUtc")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("RefreshTokenHash")
@@ -337,8 +341,7 @@ namespace Identity.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TenantId", "Name")
-                        .IsUnique();
+                    b.HasIndex("TenantId", "Name");
 
                     b.ToTable("Organizations", (string)null);
                 });
@@ -373,7 +376,6 @@ namespace Identity.Persistence.Migrations
 
             modelBuilder.Entity("Identity.Domain.Entities.Identity.SecurityAuditEvent", b =>
                 {
-                    b.Property<Guid?>("ScopeId").HasColumnType("uniqueidentifier");
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
@@ -401,6 +403,9 @@ namespace Identity.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
+
+                    b.Property<Guid?>("ScopeId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("SessionId")
                         .HasColumnType("uniqueidentifier");
@@ -434,7 +439,31 @@ namespace Identity.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("ConfigurationJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContactEmail")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<string>("ContactName")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("EndsAtUtc")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<bool>("IsActive")
@@ -445,10 +474,15 @@ namespace Identity.Persistence.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<DateTimeOffset>("StartsAtUtc")
+                        .HasColumnType("datetimeoffset");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("Code")
                         .IsUnique();
+
+                    b.HasIndex("Name");
 
                     b.ToTable("Tenants", (string)null);
                 });

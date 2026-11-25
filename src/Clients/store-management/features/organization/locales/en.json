@@ -1,0 +1,6 @@
+{
+    "eyebrow": "STORE OPERATIONS", "title": "Organization directory", "description": "Manage tenants, organizations, branches, warehouses, and points of sale.",
+    "refresh": "Refresh", "search": "Search", "resource": "Resource", "tenant": "Tenant", "organization": "Organization", "branch": "Branch", "create": "Create", "edit": "Edit", "code": "Code", "name": "Name", "status": "Status", "actions": "Actions", "emptyTitle": "No records found", "saved": "Changes saved.", "saveError": "Could not save changes.", "active": "Active", "inactive": "Inactive", "enable": "Enable", "disable": "Disable", "cancel": "Cancel", "save": "Save",
+    "resources": { "tenants": "Tenants", "organizations": "Organizations", "branches": "Branches", "warehouses": "Warehouses", "pos": "Points of sale" },
+    "fields": { "code": "Code", "name": "Name", "contactEmail": "Contact email", "contactPhone": "Contact phone", "businessType": "Business type", "industry": "Industry", "taxCode": "Tax code", "address": "Address", "phone": "Phone", "email": "Email", "currency": "Currency", "timeZone": "Time zone", "language": "Language", "managerUserId": "Manager user ID", "isDefault": "Default", "warehouseType": "Warehouse type", "description": "Description" }
+}

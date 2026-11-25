@@ -31,17 +31,8 @@ namespace Identity.Api.DependencyInjection.Extensions
                 var key = Encoding.UTF8.GetBytes(jwtOption.SecretKey);
                 o.SaveToken = true;
 
-                o.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtOption.Issuer,
-                    ValidAudience = jwtOption.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ClockSkew = TimeSpan.Zero
-                };
+                o.TokenValidationParameters = BuildingBlocks.AspNetCore.Authentication.JwtValidation.Create(
+                    jwtOption.Issuer, jwtOption.Audience, jwtOption.SecretKey);
 
                 o.Events = new JwtBearerEvents
                 {
@@ -75,6 +66,35 @@ namespace Identity.Api.DependencyInjection.Extensions
                             context.Fail("The account is unavailable.");
                             return;
                         }
+                        var tenantIdValue = context.Principal?.FindFirstValue(IdentityClaimTypes.TenantId);
+                        if (!Guid.TryParse(tenantIdValue, out var tenantId))
+                        {
+                            context.Fail("A tenant claim is required.");
+                            return;
+                        }
+
+                        try
+                        {
+                            var projection = context.HttpContext.RequestServices.GetRequiredService<IOrganizationScopeProjection>();
+                            if (!await projection.RefreshAsync(tenantId, context.HttpContext.RequestAborted) && !context.Principal!.IsInRole("Administrator"))
+                            {
+                                context.Fail("The tenant is unavailable.");
+                                return;
+                            }
+                        }
+                        catch (Exception exception) when (exception is HttpRequestException or OperationCanceledException or System.Text.Json.JsonException)
+                        {
+                            context.Fail("Organization directory is unavailable.");
+                            return;
+                        }
+                        if (context.Principal!.IsInRole("Administrator")
+                            && Guid.TryParse(context.Request.Headers["X-Tenant-Id"], out var selectedTenantId)
+                            && selectedTenantId != tenantId)
+                        {
+                            var projection = context.HttpContext.RequestServices.GetRequiredService<IOrganizationScopeProjection>();
+                            await projection.RefreshAsync(selectedTenantId, context.HttpContext.RequestAborted);
+                        }
+
                         var ip = context.HttpContext.Connection.RemoteIpAddress?.ToString();
                         if (session.LastActiveAtUtc < now.AddMinutes(-1) || session.IpAddress != ip)
                             await db.LoginSessions.Where(item => item.Id == sessionId && !item.IsRevoked

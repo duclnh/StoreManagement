@@ -50,6 +50,7 @@ builder.Services
         options.SubstituteApiVersionInUrl = true;
     });
 
+builder.Services.AddOrganizationDirectory(builder.Configuration);
 builder.Services.AddJwtAuthenticationApplication(builder.Configuration);
 var dataProtection = builder.Services.AddDataProtection();
 var protectionApplicationName = builder.Configuration["DataProtection:ApplicationName"];

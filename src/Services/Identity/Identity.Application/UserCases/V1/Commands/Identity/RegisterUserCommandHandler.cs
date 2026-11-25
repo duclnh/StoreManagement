@@ -1,5 +1,5 @@
-using Identity.Contract.Abstraction.Message;
-using Identity.Contract.Abstraction.Shared;
+using BuildingBlocks.Contracts.Message;
+using BuildingBlocks.Contracts.Shared;
 using Identity.Domain.Entities.Identity;
 using Identity.Application.Abstractions;
 using Identity.Domain.Abstractions;

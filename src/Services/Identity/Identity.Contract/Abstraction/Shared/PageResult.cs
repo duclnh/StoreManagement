@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Identity.Contract.Abstraction.Shared
+namespace BuildingBlocks.Contracts.Shared
 {
     public class PageResult<T>
     {

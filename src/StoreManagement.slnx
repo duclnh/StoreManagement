@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Services/" />
   <Folder Name="/Services/Identity/">
+    <Project Path="Services/Identity/Identity.Test/Identity.Test.csproj" />
     <Project Path="Services/Identity/Identity.Api/Identity.Api.csproj" />
     <Project Path="Services/Identity/Identity.Application/Identity.Application.csproj" />
     <Project Path="Services/Identity/Identity.Contract/Identity.Contract.csproj" />
@@ -8,5 +9,20 @@
     <Project Path="Services/Identity/Identity.Infrastructure/Identity.Infrastructure.csproj" />
     <Project Path="Services/Identity/Identity.Persistence/Identity.Persistence.csproj" />
   </Folder>
-  <Project Path="../tests/Identity.Test/Identity.Test.csproj" />
+  <Folder Name="/Services/Organization/">
+    <Project Path="Services/Organization/Organization.Api/Organization.Api.csproj" />
+    <Project Path="Services/Organization/Organization.Application/Organization.Application.csproj" />
+    <Project Path="Services/Organization/Organization.Contract/Organization.Contract.csproj" />
+    <Project Path="Services/Organization/Organization.Domain/Organization.Domain.csproj" />
+    <Project Path="Services/Organization/Organization.Persistence/Organization.Persistence.csproj" />
+    <Project Path="Services/Organization/Organization.Infrastructure/Organization.Infrastructure.csproj" />
+    <Project Path="Services/Organization/Organization.Test/Organization.Test.csproj" />
+  </Folder>
+  <Folder Name="/BuildingBlocks/">
+    <Project Path="BuildingBlocks/BuildingBlocks.Contracts/BuildingBlocks.Contracts.csproj" />
+    <Project Path="BuildingBlocks/BuildingBlocks.AspNetCore/BuildingBlocks.AspNetCore.csproj" />
+  </Folder>
+  <Folder Name="/Services/ApiYarnGateway/">
+    <Project Path="Services/ApiYarnGateway/ApiYarnGateway.csproj" />
+  </Folder>
 </Solution>

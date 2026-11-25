@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { usePathname } from "next/navigation";
 
-export type WorkspaceView = "users" | "roles" | "permissions" | "sessions" | "security" | "audit" | "tenants";
+export type WorkspaceView = "users" | "roles" | "permissions" | "sessions" | "security" | "audit" | "tenants" | "organization";
 const activeTenantStorageKey = "identity-admin-active-tenant";
 
 interface WorkspaceViewContextValue {

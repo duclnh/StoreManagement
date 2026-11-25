@@ -28,5 +28,8 @@
 	  <ProjectReference Include="..\Identity.Persistence\Identity.Persistence.csproj" />
 	</ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../Organization/Organization.Contract/Organization.Contract.csproj" />
+  </ItemGroup>
 </Project>
 

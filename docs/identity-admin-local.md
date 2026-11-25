@@ -23,7 +23,13 @@ If either environment variable is absent, bootstrap is skipped. When configured,
 
 ## Start the console
 
-The default Identity API URL is `http://localhost:5168`. If it differs, copy `src/Clients/store-management/.env.local.example` to `.env.local` and change `IDENTITY_API_URL`.
+Start the gateway in a second shell from the repository root:
+
+```powershell
+dotnet run --project src/Services/ApiYarnGateway/ApiYarnGateway.csproj
+```
+
+The console proxy uses the gateway at `http://localhost:5100`; the gateway forwards Identity requests to `http://localhost:5168`. If the gateway URL differs, copy `src/Clients/store-management/.env.local.example` to `.env.local` and change `IDENTITY_API_URL`.
 
 ```powershell
 Push-Location src/Clients/store-management

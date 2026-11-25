@@ -44,6 +44,7 @@ import PermissionsPage from "./permissions-page";
 import UserSessions from "./user-sessions";
 import LoginScreen from "./login-screen";
 import TenantManagement from "./tenant-management";
+import OrganizationWorkspace from "@/features/organization/components/organization-workspace";
 import { useWorkspaceView, type WorkspaceView } from "./workspace-view-provider";
 import { formatSessionDate, getSessionDeviceLabel } from "../utils/session-display";
 import type { AccountProfile, AdminConsoleProps, IdentityAdminAccess, IdentityClaim, IdentityScope, IdentityTenant, LoginRequest, LoginSession, NewUserDraft, Role, RoleDraft, SecurityAuditPage, Session, User, UserPage } from "../interfaces";
@@ -648,6 +649,7 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
           <button aria-current={view === "security" ? "page" : undefined} className={view === "security" ? "nav-item active" : "nav-item"} onClick={() => navigateToView("security")}><Settings2 size={17} /><span>{a("navigation.security")}</span></button>
           {currentAccess?.canViewAudit && <button aria-current={view === "audit" ? "page" : undefined} className={view === "audit" ? "nav-item active" : "nav-item"} onClick={() => navigateToView("audit")}><ClipboardList size={17} /><span>{a("navigation.audit")}</span></button>}
           {profile?.isAdministrator && <button aria-current={view === "tenants" ? "page" : undefined} className={view === "tenants" ? "nav-item active" : "nav-item"} onClick={() => navigateToView("tenants")}><Building2 size={17} /><span>{a("navigation.tenants")}</span></button>}
+          {profile?.isAdministrator && <button aria-current={view === "organization" ? "page" : undefined} className={view === "organization" ? "nav-item active" : "nav-item"} onClick={() => navigateToView("organization")}><Building2 size={17} /><span>{a("navigation.organization")}</span></button>}
         </nav>
         <div className="sidebar-bottom"><div className="policy-note"><ShieldCheck size={16} /><span><strong>{a("navigation.protected")}</strong><small>{a("navigation.policy")}</small></span></div><div className="account-row"><span className="account-avatar">{session.email.slice(0, 1).toUpperCase()}</span><span className="account-email">{session.email}</span><button className="icon-button sidebar-signout" title={a("navigation.signOut")} aria-label={a("navigation.signOut")} onClick={signOut} disabled={busy}><LogOut size={16} /></button></div></div>
       </aside>
@@ -684,7 +686,7 @@ export default function AdminConsole({ mode }: AdminConsoleProps) {
             </div>
           </section>
           {(notice || error) && <div className={error ? "notice notice-error" : "notice notice-success"} role={error ? "alert" : "status"}><span>{error || notice}</span><button aria-label={a("common.dismiss")} onClick={() => { setError(""); setNotice(""); }}><X size={15} /></button></div>}
-          {view === "tenants" && profile?.isAdministrator ? <TenantManagement /> : view !== "security" && view !== "sessions" && !identityDataReady ? (
+          {view === "tenants" && profile?.isAdministrator ? <TenantManagement /> : view === "organization" && profile?.isAdministrator ? <OrganizationWorkspace /> : view !== "security" && view !== "sessions" && !identityDataReady ? (
             <div className="tenant-empty" role="status">{accessLoading ? a("common.loadingWorkspace") : error || a("scope.accessDenied")}</div>
           ) : view === "permissions" ? currentAccess?.canManageRolePermissions && currentAccess.canViewRoles ? <PermissionsPage key={`${activeTenantId}:${selectedScopeId}:${roles.map(role => role.id).join()}`} roles={roles} scopeId={selectedScopeId || activeTenantId} /> : <div className="empty-state">{a("scope.accessDenied")}</div> : view === "users" ? <>
             <div className="page-heading"><div><p className="eyebrow">{a("users.eyebrow")}</p><h1>{a("users.title")}</h1><p className="subtle">{a("users.description")}</p></div><div className="heading-actions"><div className="total-stat"><strong>{users.totalCount.toLocaleString()}</strong><span>{a("users.accounts")}</span></div>{currentAccess?.canCreateUsers && <button className="primary-button" onClick={() => setNewUserDraft({ email: "", firstName: "", lastName: "", password: "", roles: [] })}><Plus size={15} /> {a("users.new")}</button>}</div></div>

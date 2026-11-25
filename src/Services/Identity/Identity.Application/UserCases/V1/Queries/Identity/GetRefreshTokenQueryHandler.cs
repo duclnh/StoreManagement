@@ -1,6 +1,6 @@
 ﻿using Identity.Application.Abstractions;
-using Identity.Contract.Abstraction.Message;
-using Identity.Contract.Abstraction.Shared;
+using BuildingBlocks.Contracts.Message;
+using BuildingBlocks.Contracts.Shared;
 using Identity.Contract.Services.V1.Identity;
 using Identity.Domain.Abstractions;
 using Identity.Domain.Entities.Identity;
@@ -26,6 +26,7 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
         private readonly IHttpContextAccessor _http;
         private readonly IDataProtectionProvider _protection;
         private readonly ApplicationDbContext _db;
+        private readonly IOrganizationScopeProjection _organizationProjection;
 
         public GetRefreshTokenQueryHandler(
             IJwtTokenService jwtTokenService,
@@ -34,7 +35,8 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
             IUnitOfWork unitOfWork,
             IHttpContextAccessor http,
             IDataProtectionProvider protection,
-            ApplicationDbContext db)
+            ApplicationDbContext db,
+            IOrganizationScopeProjection organizationProjection)
         {
             _jwtTokenService = jwtTokenService;
             _userManager = userManager;
@@ -43,6 +45,7 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
             _http = http;
             _protection = protection;
             _db = db;
+            _organizationProjection = organizationProjection;
         }
 
         public async Task<Result<Response.Authenticated>> Handle(Query.RefreshToken request, CancellationToken cancellationToken)
@@ -57,6 +60,19 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
             }
 
             var session = await _unitOfWork.LoginSessionRepository.FindByIdAsync(request.SessionId, cancellationToken);
+            try
+            {
+                if (!await _organizationProjection.RefreshAsync(user.TenantId, cancellationToken)
+                    && !await _userManager.IsInRoleAsync(user, "Administrator"))
+                {
+                    return Result.Failure<Response.Authenticated>(new Error("Identity.Tenant.Inactive", "Tenant is unavailable."));
+                }
+            }
+            catch (Exception exception) when (exception is HttpRequestException or OperationCanceledException or System.Text.Json.JsonException)
+            {
+                return Result.Failure<Response.Authenticated>(new Error("Identity.Organization.Unavailable", "Organization directory is unavailable."));
+            }
+
             var now = DateTimeOffset.UtcNow;
             if (session is null
                 || session.UserId != user.Id

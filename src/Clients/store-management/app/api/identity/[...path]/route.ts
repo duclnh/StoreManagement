@@ -51,7 +51,7 @@ const legacyCookieNames = [
   "identity_email",
 ] as const;
 
-const identityApi = (process.env.IDENTITY_API_URL ?? "http://localhost:5168").replace(/\/$/, "");
+const identityApi = (process.env.IDENTITY_API_URL ?? "http://localhost:5100").replace(/\/$/, "");
 const cookieCipher = "aes-256-gcm";
 const cookieOptions = {
   httpOnly: true,

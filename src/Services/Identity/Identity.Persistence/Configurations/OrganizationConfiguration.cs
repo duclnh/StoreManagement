@@ -13,7 +13,7 @@ namespace Identity.Persistence.Configurations
             builder.HasKey(organization => organization.Id);
             builder.Property(organization => organization.Name).HasMaxLength(150).IsRequired();
             builder.Property(organization => organization.IsActive).IsRequired();
-            builder.HasIndex(organization => new { organization.TenantId, organization.Name }).IsUnique();
+            builder.HasIndex(organization => new { organization.TenantId, organization.Name });
             builder.HasOne(organization => organization.Tenant)
                 .WithMany(tenant => tenant.Organizations)
                 .HasForeignKey(organization => organization.TenantId)

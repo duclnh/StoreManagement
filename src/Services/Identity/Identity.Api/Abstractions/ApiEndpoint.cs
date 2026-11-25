@@ -1,4 +1,4 @@
-﻿using Identity.Contract.Abstraction.Shared;
+﻿using BuildingBlocks.Contracts.Shared;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;

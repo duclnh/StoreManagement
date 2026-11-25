@@ -128,6 +128,7 @@
       "security": "Bảo mật",
       "audit": "Nhật ký bảo mật",
       "tenants": "Tenant",
+      "organization": "Tổ chức",
       "protected": "Không gian làm việc an toàn",
       "policy": "Chính sách quản trị đang bật",
       "signOut": "Đăng xuất"

@@ -1,7 +1,7 @@
 using Carter;
 using Identity.Presentation.Abstractions;
 using Identity.Api.Authorization;
-using Identity.Contract.Abstraction.Shared;
+using BuildingBlocks.Contracts.Shared;
 using IdentityContracts = global::Identity.Contract.Services.V1.Identity;
 using Identity.Domain.Abstractions;
 using MediatR;
@@ -63,41 +63,6 @@ namespace Identity.Presentation.Apis.V1.Identity
                 .WithSummary("Get an identity scope")
                 .Produces<Result<IdentityContracts.Response.IdentityScope>>()
                 .Produces(StatusCodes.Status404NotFound);
-            group.MapPost("tenants", CreateIdentityTenant)
-                .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-                .WithSummary("Create an identity tenant")
-                .Produces<Result<IdentityContracts.Response.IdentityScope>>(StatusCodes.Status201Created)
-                .Produces(StatusCodes.Status409Conflict);
-            group.MapPut("tenants/{tenantId:guid}/status", SetIdentityTenantStatus)
-                .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-                .WithSummary("Set tenant active status")
-                .Produces(StatusCodes.Status204NoContent)
-                .Produces(StatusCodes.Status404NotFound);
-            group.MapPost("tenants/{tenantId:guid}/organizations", CreateIdentityOrganization)
-                .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-                .WithSummary("Create an organization in a tenant")
-                .Produces<Result<IdentityContracts.Response.IdentityScope>>(StatusCodes.Status201Created)
-                .Produces(StatusCodes.Status404NotFound)
-                .Produces(StatusCodes.Status409Conflict);
-            group.MapPut("tenants/{tenantId:guid}/organizations/{organizationId:guid}/status", SetIdentityOrganizationStatus)
-                .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-                .WithSummary("Set organization active status")
-                .Produces(StatusCodes.Status204NoContent)
-                .Produces(StatusCodes.Status404NotFound);
-            group.MapPost("tenants/{tenantId:guid}/organizations/{organizationId:guid}/branches", CreateIdentityBranch)
-                .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-                .WithSummary("Create a branch in an organization")
-                .Produces<Result<IdentityContracts.Response.IdentityScope>>(StatusCodes.Status201Created)
-                .Produces(StatusCodes.Status404NotFound)
-                .Produces(StatusCodes.Status409Conflict);
-            group.MapPut("tenants/{tenantId:guid}/organizations/{organizationId:guid}/branches/{branchId:guid}/status", SetIdentityBranchStatus)
-                .RequireAuthorization(policy => policy.RequireRole("Administrator"))
-                .WithSummary("Set branch active status")
-                .Produces(StatusCodes.Status204NoContent)
-                .Produces(StatusCodes.Status404NotFound);
-            group.MapPost("roles", CreateRole).RequirePermission("Identity.Roles", "Create");
-            group.MapPut("roles/{roleId:guid}", UpdateRole).RequirePermission("Identity.Roles", "Update");
-            group.MapDelete("roles/{roleId:guid}", DeleteRole).RequirePermission("Identity.Roles", "Delete");
             group.MapGet("audit-events", GetSecurityAuditEvents).RequirePermission("Identity.Security", "View");
             group.MapGet("roles/{roleId:guid}/permissions", GetRolePermissions).RequirePermission("Identity.Roles", "Assign");
             group.MapPut("roles/{roleId:guid}/permissions", SetRolePermissions).RequirePermission("Identity.Roles", "Assign");
@@ -300,112 +265,6 @@ namespace Identity.Presentation.Apis.V1.Identity
                 return HandlerFailure(result);
             return result.Value is null ? Results.NotFound() : Results.Ok(result);
         }
-
-        private async Task<IResult> CreateIdentityTenant(
-            ISender sender,
-            [FromBody] IdentityScopeNameRequest request,
-            CancellationToken cancellationToken)
-        {
-            var result = await sender.Send(new CreateIdentityTenant(request.Name), cancellationToken);
-            if (result.IsFailure)
-                return IdentityScopeFailure(result.Error!);
-            var scope = result.Value ?? throw new InvalidOperationException("Tenant creation returned no scope.");
-            return Results.Created($"/api/v1/admin/scopes/{scope.Id}", result);
-        }
-
-        private async Task<IResult> CreateIdentityOrganization(
-            ISender sender,
-            Guid tenantId,
-            [FromBody] IdentityScopeNameRequest request,
-            CancellationToken cancellationToken)
-        {
-            var result = await sender.Send(new CreateIdentityOrganization(tenantId, request.Name), cancellationToken);
-            if (result.IsFailure)
-                return IdentityScopeFailure(result.Error!);
-            var scope = result.Value ?? throw new InvalidOperationException("Organization creation returned no scope.");
-            return Results.Created($"/api/v1/admin/scopes/{scope.Id}", result);
-        }
-
-        private async Task<IResult> CreateIdentityBranch(
-            ISender sender,
-            Guid tenantId,
-            Guid organizationId,
-            [FromBody] IdentityScopeNameRequest request,
-            CancellationToken cancellationToken)
-        {
-            var result = await sender.Send(
-                new CreateIdentityBranch(tenantId, organizationId, request.Name),
-                cancellationToken);
-            if (result.IsFailure)
-                return IdentityScopeFailure(result.Error!);
-            var scope = result.Value ?? throw new InvalidOperationException("Branch creation returned no scope.");
-            return Results.Created($"/api/v1/admin/scopes/{scope.Id}", result);
-        }
-
-        private async Task<IResult> SetIdentityTenantStatus(
-            ISender sender,
-            Guid tenantId,
-            [FromBody] IdentityScopeStatusRequest request,
-            CancellationToken cancellationToken)
-        {
-            var result = await sender.Send(
-                new SetIdentityTenantStatus(tenantId, request.IsActive),
-                cancellationToken);
-            return result.IsFailure ? IdentityScopeFailure(result.Error!) : Results.NoContent();
-        }
-
-        private async Task<IResult> SetIdentityOrganizationStatus(
-            ISender sender,
-            Guid tenantId,
-            Guid organizationId,
-            [FromBody] IdentityScopeStatusRequest request,
-            CancellationToken cancellationToken)
-        {
-            var result = await sender.Send(
-                new SetIdentityOrganizationStatus(tenantId, organizationId, request.IsActive),
-                cancellationToken);
-            return result.IsFailure ? IdentityScopeFailure(result.Error!) : Results.NoContent();
-        }
-
-        private async Task<IResult> SetIdentityBranchStatus(
-            ISender sender,
-            Guid tenantId,
-            Guid organizationId,
-            Guid branchId,
-            [FromBody] IdentityScopeStatusRequest request,
-            CancellationToken cancellationToken)
-        {
-            var result = await sender.Send(
-                new SetIdentityBranchStatus(tenantId, organizationId, branchId, request.IsActive),
-                cancellationToken);
-            return result.IsFailure ? IdentityScopeFailure(result.Error!) : Results.NoContent();
-        }
-
-        private static IResult IdentityScopeFailure(Error error) =>
-            error.Code switch
-            {
-                "Identity.Scope.NotFound" => Results.NotFound(new ProblemDetails
-                {
-                    Title = "Identity scope not found",
-                    Detail = error.Message,
-                    Status = StatusCodes.Status404NotFound,
-                    Type = error.Code
-                }),
-                "Identity.Scope.Conflict" => Results.Conflict(new ProblemDetails
-                {
-                    Title = "Identity scope conflict",
-                    Detail = error.Message,
-                    Status = StatusCodes.Status409Conflict,
-                    Type = error.Code
-                }),
-                _ => Results.BadRequest(new ProblemDetails
-                {
-                    Title = "Invalid identity scope request",
-                    Detail = error.Message,
-                    Status = StatusCodes.Status400BadRequest,
-                    Type = error.Code
-                })
-            };
 
         private async Task<IResult> CreateUser(
             ISender sender,

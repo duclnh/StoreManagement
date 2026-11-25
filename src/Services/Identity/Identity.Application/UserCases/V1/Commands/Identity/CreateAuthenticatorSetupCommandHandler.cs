@@ -1,5 +1,5 @@
-using Identity.Contract.Abstraction.Message;
-using Identity.Contract.Abstraction.Shared;
+using BuildingBlocks.Contracts.Message;
+using BuildingBlocks.Contracts.Shared;
 using Identity.Contract.Services.V1.Identity;
 using Identity.Domain.Entities.Identity;
 using Microsoft.AspNetCore.Identity;

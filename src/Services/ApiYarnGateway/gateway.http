@@ -1,0 +1,16 @@
+@gateway = http://localhost:5100
+@token = REPLACE_WITH_IDENTITY_ACCESS_TOKEN
+
+### Gateway process health
+GET {{gateway}}/health
+
+### Identity route
+GET {{gateway}}/api/v1/auths/me
+Authorization: Bearer {{token}}
+
+### Organization route
+GET {{gateway}}/api/v1/tenants?page=1&pageSize=20
+Authorization: Bearer {{token}}
+
+### Internal routes must not be exposed (404)
+GET {{gateway}}/internal/v1/tenants

@@ -1,6 +1,6 @@
 ﻿using Identity.Application.Abstractions;
-using Identity.Contract.Abstraction.Message;
-using Identity.Contract.Abstraction.Shared;
+using BuildingBlocks.Contracts.Message;
+using BuildingBlocks.Contracts.Shared;
 using Identity.Contract.Services.V1.Identity;
 using Identity.Domain.Abstractions;
 using Identity.Domain.Entities.Identity;
@@ -23,6 +23,7 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
         private readonly IUnitOfWork _unitOfWork;
         private readonly LoginSessionOptions _sessionOptions;
         private readonly ApplicationDbContext _db;
+        private readonly IOrganizationScopeProjection _organizationProjection;
 
         public GetLoginQueryHandler(
             IJwtTokenService jwtTokenService,
@@ -30,7 +31,8 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
             RoleManager<AppRole> roleManager,
             IUnitOfWork unitOfWork,
             IOptions<LoginSessionOptions> sessionOptions,
-            ApplicationDbContext db)
+            ApplicationDbContext db,
+            IOrganizationScopeProjection organizationProjection)
         {
             _jwtTokenService = jwtTokenService;
             _userManager = userManager;
@@ -38,6 +40,7 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
             _unitOfWork = unitOfWork;
             _sessionOptions = sessionOptions.Value;
             _db = db;
+            _organizationProjection = organizationProjection;
         }
 
         public async Task<Result<Response.Authenticated>> Handle(Query.Login request, CancellationToken cancellationToken)
@@ -90,6 +93,19 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
                     await RecordFailedAttemptAsync(user, cancellationToken);
                     return await InvalidCredentialsAsync(user, "InvalidTwoFactorCode", cancellationToken);
                 }
+            }
+
+            try
+            {
+                if (!await _organizationProjection.RefreshAsync(user.TenantId, cancellationToken)
+                    && !await _userManager.IsInRoleAsync(user, "Administrator"))
+                {
+                    return Result.Failure<Response.Authenticated>(new Error("Identity.Tenant.Inactive", "Tenant is unavailable."));
+                }
+            }
+            catch (Exception exception) when (exception is HttpRequestException or OperationCanceledException or System.Text.Json.JsonException)
+            {
+                return Result.Failure<Response.Authenticated>(new Error("Identity.Organization.Unavailable", "Organization directory is unavailable."));
             }
 
             await _userManager.ResetAccessFailedCountAsync(user);
