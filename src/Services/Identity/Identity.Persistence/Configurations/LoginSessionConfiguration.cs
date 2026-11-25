@@ -17,6 +17,8 @@ namespace Identity.Persistence.Configurations
                 .IsRequired();
             builder.Property(session => session.UserAgent)
                 .HasMaxLength(1024);
+            builder.Property(session => session.PreviousRefreshTokenHash).HasMaxLength(64);
+            builder.Property(session => session.ProtectedRefreshToken).HasMaxLength(1024);
             builder.Property(session => session.IpAddress)
                 .HasMaxLength(45);
             builder.Property(session => session.CreatedAtUtc).IsRequired();

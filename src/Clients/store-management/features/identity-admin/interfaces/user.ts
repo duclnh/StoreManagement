@@ -1,3 +1,5 @@
+import type { PageResult } from "./page";
+
 export interface User {
   id: string;
   email: string;
@@ -10,12 +12,7 @@ export interface User {
   roles: string[];
 }
 
-export interface UserPage {
-  items: User[];
-  page: number;
-  pageSize: number;
-  totalCount: number;
-}
+export type UserPage = PageResult<User>;
 
 export interface NewUserDraft {
   email: string;

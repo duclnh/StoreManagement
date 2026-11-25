@@ -1,5 +1,29 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
+import { createRefreshCoordinator } from "@/lib/session-refresh";
+
+//  
+const coordinateRefresh = createRefreshCoordinator<Authenticated>();
+
+class UpstreamError extends Error {
+  constructor(readonly status: number, message: string) { super(message); }
+}
+
+function upstreamFetch(url: string, init: RequestInit = {}, timeoutMs = 10_000) {
+  return fetch(url, { ...init, cache: "no-store", signal: AbortSignal.timeout(timeoutMs) });
+}
+
+function clientHeaders(request: Request): Record<string, string> {
+  const result: Record<string, string> = {};
+  const agent = request.headers.get("user-agent");
+  if (agent) result["User-Agent"] = agent.slice(0, 1024);
+  // Enable only behind an ingress that overwrites these headers.
+  if (process.env.IDENTITY_TRUST_PROXY_HEADERS === "true") {
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    if (ip) result["X-Forwarded-For"] = ip;
+  }
+  return result;
+}
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
@@ -88,6 +112,18 @@ function unwrapAuthenticated(payload: unknown): Authenticated | undefined {
   };
 }
 
+function readEmailCookie(value: string | undefined) {
+  let email = decryptCookieValue(value) ?? "";
+  // Repair cookies written by the previous refresh implementation, which encrypted
+  // the encrypted email again on every rotation.
+  for (let depth = 0; depth < 8 && email.startsWith("v1."); depth++) {
+    const decoded = decryptCookieValue(email);
+    if (!decoded) break;
+    email = decoded;
+  }
+  return email.includes("@") ? email : "";
+}
+
 async function readPayload(response: Response) {
   return response.json().catch(() => null);
 }
@@ -107,7 +143,7 @@ async function saveSession(auth: Authenticated, email: string) {
   cookieStore.set(cookieNames.email, encryptCookieValue(email), { ...cookieOptions, maxAge: 30 * 24 * 60 * 60 });
 }
 
-async function refreshAccessToken() {
+async function refreshAccessToken(request: Request) {
   const cookieStore = await cookies();
   const refreshCookie = cookieStore.get(cookieNames.refresh)?.value;
   const userId = decryptCookieValue(cookieStore.get(cookieNames.userId)?.value);
@@ -119,30 +155,39 @@ async function refreshAccessToken() {
   }
   if (!userId || !sessionId || !token) return undefined;
 
-  const response = await fetch(`${identityApi}/api/v1/auths/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, sessionId, token }),
-    cache: "no-store",
-  }).catch(() => undefined);
-  if (!response?.ok) return undefined;
+  const auth = await coordinateRefresh(`${userId}:${sessionId}:${token}`, async () => {
+    const response = await upstreamFetch(`${identityApi}/api/v1/auths/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...clientHeaders(request) },
+      body: JSON.stringify({ userId, sessionId, token }),
+      cache: "no-store",
+  });
+  if (!response.ok) {
+    if (response.status === 429) throw new UpstreamError(429, "Too many requests. Please retry shortly.");
+    if (response.status >= 500) throw new UpstreamError(503, "Identity API is temporarily unavailable.");
+    throw new UpstreamError(401, "Your session has expired.");
+  }
 
   const auth = unwrapAuthenticated(await readPayload(response));
-  if (!auth?.accessToken || !auth.refreshToken || !auth.userId || !auth.sessionId) return undefined;
+  if (!auth?.accessToken || !auth.refreshToken || !auth.userId || !auth.sessionId)
+    throw new UpstreamError(502, "Identity API returned an invalid refresh response.");
+  return auth;
+  });
 
-  await saveSession(auth, cookieStore.get(cookieNames.email)?.value ?? "");
+  await saveSession(auth, readEmailCookie(cookieStore.get(cookieNames.email)?.value));
   return auth.accessToken;
 }
 
 async function clearSession() {
   const cookieStore = await cookies();
-  for (const name of [...Object.values(cookieNames), ...legacyCookieNames]) cookieStore.delete(name);
+  for (const name of [...Object.values(cookieNames), ...legacyCookieNames])
+    cookieStore.delete({ name, path: cookieOptions.path });
 }
 
-async function handle(request: Request, context: RouteContext) {
+async function handleRequest(request: Request, context: RouteContext) {
   const cookieStore = await cookies();
   for (const name of legacyCookieNames) {
-    if (cookieStore.get(name)) cookieStore.delete(name);
+    if (cookieStore.get(name)) cookieStore.delete({ name, path: cookieOptions.path });
   }
 
   const { path } = await context.params;
@@ -154,7 +199,7 @@ async function handle(request: Request, context: RouteContext) {
     const refreshToken = decryptCookieValue(refreshCookie);
     const userId = decryptCookieValue(cookieStore.get(cookieNames.userId)?.value);
     const sessionId = decryptCookieValue(cookieStore.get(cookieNames.sessionId)?.value);
-    const email = decryptCookieValue(cookieStore.get(cookieNames.email)?.value);
+    const email = readEmailCookie(cookieStore.get(cookieNames.email)?.value);
     const hasSession = Boolean(refreshToken && userId && sessionId);
     if (refreshCookie && !hasSession) await clearSession();
     return Response.json({
@@ -163,6 +208,9 @@ async function handle(request: Request, context: RouteContext) {
       userId: hasSession ? userId : "",
     });
   }
+
+  if (resourcePath === "auths/refresh")
+    return Response.json({ error: "Refresh is managed by the server." }, { status: 404 });
 
   if (!new Set(["GET", "HEAD", "OPTIONS"]).has(request.method)) {
     const origin = request.headers.get("origin");
@@ -229,9 +277,9 @@ async function handle(request: Request, context: RouteContext) {
       }
     })();
 
-    const response = await fetch(`${identityApi}/api/v1/auths/login`, {
+    const response = await upstreamFetch(`${identityApi}/api/v1/auths/login`, {
       method: "POST",
-      headers: { "Content-Type": request.headers.get("content-type") ?? "application/json" },
+      headers: { "Content-Type": request.headers.get("content-type") ?? "application/json", ...clientHeaders(request) },
       body,
       cache: "no-store",
     }).catch(() => undefined);
@@ -249,56 +297,73 @@ async function handle(request: Request, context: RouteContext) {
   }
 
   if (request.method === "POST" && resourcePath === "auths/logout") {
-    const accessToken = await refreshAccessToken();
+    const accessToken = decryptCookieValue(cookieStore.get(cookieNames.access)?.value);
+    const userId = decryptCookieValue(cookieStore.get(cookieNames.userId)?.value);
+    const token = decryptCookieValue(cookieStore.get(cookieNames.refresh)?.value);
     const sessionId = decryptCookieValue(cookieStore.get(cookieNames.sessionId)?.value);
-    if (accessToken && sessionId) {
-      await fetch(`${identityApi}/api/v1/auths/revoke`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ sessionId }),
-        cache: "no-store",
-      }).catch(() => undefined);
+    try {
+      if (sessionId && (accessToken || (token && userId))) {
+        const response = await upstreamFetch(`${identityApi}/api/v1/auths/${accessToken ? "revoke" : "logout"}`, {
+          method: "POST",
+          headers: {
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+            "Content-Type": "application/json",
+            ...clientHeaders(request),
+          },
+          body: JSON.stringify(accessToken ? { sessionId } : { userId, sessionId, token }),
+          cache: "no-store",
+        }, 3_000);
+        if (!response.ok && response.status === 401 && token && userId) {
+          const fallback = await upstreamFetch(`${identityApi}/api/v1/auths/logout`, {
+            method: "POST", headers: { "Content-Type": "application/json", ...clientHeaders(request) },
+            body: JSON.stringify({ userId, sessionId, token }),
+          }, 3_000);
+          if (!fallback.ok) throw new UpstreamError(502, "Signed out locally; the server could not confirm session revocation.");
+        } else if (!response.ok) {
+          throw new UpstreamError(502, "Signed out locally; the server could not confirm session revocation.");
+        }
+      }
+    } finally {
+      await clearSession();
     }
-    await clearSession();
     return new Response(null, { status: 204 });
   }
 
-  let accessToken = decryptCookieValue(cookieStore.get(cookieNames.access)?.value) ?? await refreshAccessToken();
+  let accessToken = decryptCookieValue(cookieStore.get(cookieNames.access)?.value) ?? await refreshAccessToken(request);
   if (!accessToken) {
     await clearSession();
     return Response.json({ error: "Authentication required." }, { status: 401 });
   }
 
   const upstreamUrl = `${identityApi}/api/v1/${resourcePath}${url.search}`;
-  const forward = (token: string) => fetch(upstreamUrl, {
+  // Buffer once: a streamed body cannot be replayed after a 401/refresh.
+  const body = request.method === "GET" || request.method === "HEAD" ? undefined : await request.text();
+  const forward = (token: string) => upstreamFetch(upstreamUrl, {
     method: request.method,
     headers: {
       Authorization: `Bearer ${token}`,
       ...(request.headers.get("content-type") ? { "Content-Type": request.headers.get("content-type")! } : {}),
       ...(request.headers.get("x-tenant-id") ? { "X-Tenant-Id": request.headers.get("x-tenant-id")! } : {}),
       Accept: request.headers.get("accept") ?? "application/json",
+      ...clientHeaders(request),
     },
-    ...(request.method === "GET" || request.method === "HEAD" ? {} : { body: request.body }),
+    ...(body === undefined ? {} : { body }),
     cache: "no-store",
-    // @ts-expect-error duplex is required by Node's fetch when forwarding a request stream.
-    duplex: request.method === "GET" || request.method === "HEAD" ? undefined : "half",
   });
 
   let upstream: Response;
   try {
     upstream = await forward(accessToken);
     if (upstream.status === 401) {
-      accessToken = await refreshAccessToken() ?? "";
+      accessToken = await refreshAccessToken(request) ?? "";
       if (!accessToken) {
         await clearSession();
         return Response.json({ error: "Your session has expired." }, { status: 401 });
       }
       upstream = await forward(accessToken);
     }
-  } catch {
+  } catch (cause) {
+    if (cause instanceof UpstreamError) throw cause;
     return Response.json({ error: "Identity API is unavailable." }, { status: 502 });
   }
 
@@ -309,6 +374,19 @@ async function handle(request: Request, context: RouteContext) {
       ...(upstream.headers.get("location") ? { Location: upstream.headers.get("location")! } : {}),
     },
   });
+}
+
+async function handle(request: Request, context: RouteContext) {
+  try {
+    const response = await handleRequest(request, context);
+    response.headers.set("Cache-Control", "no-store, private");
+    return response;
+  } catch (cause) {
+    const status = cause instanceof UpstreamError ? cause.status : 503;
+    if (status === 401) await clearSession();
+    return Response.json({ error: cause instanceof UpstreamError ? cause.message : "Identity API is temporarily unavailable. Please retry." },
+      { status, headers: { "Cache-Control": "no-store, private" } });
+  }
 }
 
 export const GET = handle;

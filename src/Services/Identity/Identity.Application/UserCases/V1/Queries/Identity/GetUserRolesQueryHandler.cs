@@ -60,6 +60,10 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
                     roleNames.Add(role.Name);
             }
 
+            if (request.ScopeId == request.TenantId
+                && await _userManager.IsInRoleAsync(user, "Administrator"))
+                roleNames.Add("Administrator");
+
             return Result.Success(roleNames);
         }
     }

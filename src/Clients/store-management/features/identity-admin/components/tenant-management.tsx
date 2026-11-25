@@ -13,16 +13,16 @@ import {
   setIdentityOrganizationStatus,
   setIdentityTenantStatus,
 } from "../api/roles.api";
-import type { IdentityScope, IdentityTenant } from "../interfaces";
+import type { IdentityAdminScope, IdentityTenant } from "../interfaces";
 import { useWorkspaceView } from "./workspace-view-provider";
 
-const EMPTY_SCOPES: IdentityScope[] = [];
+const EMPTY_SCOPES: IdentityAdminScope[] = [];
 
 export default function TenantManagement() {
   const a = useTranslations("admin");
   const { activeTenantId, setActiveTenantId } = useWorkspaceView();
   const [tenants, setTenants] = useState<IdentityTenant[]>([]);
-  const [scopes, setScopes] = useState<IdentityScope[]>([]);
+  const [scopes, setScopes] = useState<IdentityAdminScope[]>([]);
   const [tenantName, setTenantName] = useState("");
   const [organizationName, setOrganizationName] = useState("");
   const [branchNames, setBranchNames] = useState<Record<string, string>>({});
@@ -132,7 +132,7 @@ export default function TenantManagement() {
     }
   }
 
-  async function submitBranch(event: FormEvent<HTMLFormElement>, organization: IdentityScope) {
+  async function submitBranch(event: FormEvent<HTMLFormElement>, organization: IdentityAdminScope) {
     event.preventDefault();
     const name = branchNames[organization.id]?.trim();
     if (!selectedTenant || !name) return;
@@ -152,9 +152,9 @@ export default function TenantManagement() {
   }
 
   async function updateStatus(
-    scope: IdentityScope,
+    scope: IdentityAdminScope,
     isActive: boolean,
-    parent?: IdentityScope,
+    parent?: IdentityAdminScope,
   ) {
     if (!selectedTenant) return;
     if (!isActive && !window.confirm(a("tenants.confirmDisable"))) return;

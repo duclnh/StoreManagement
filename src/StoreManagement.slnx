@@ -8,4 +8,5 @@
     <Project Path="Services/Identity/Identity.Infrastructure/Identity.Infrastructure.csproj" />
     <Project Path="Services/Identity/Identity.Persistence/Identity.Persistence.csproj" />
   </Folder>
+  <Project Path="../tests/Identity.Test/Identity.Test.csproj" />
 </Solution>

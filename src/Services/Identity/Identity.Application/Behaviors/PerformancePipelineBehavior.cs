@@ -33,7 +33,7 @@ namespace Identity.Application.Behaviors
                 return response;
 
             var requestName = typeof(TRequest).Name;
-            _logger.LogWarning("Long Time Running - Request Details: {Name} ({elapseMilliseconds}) milliseconds {@Request}", requestName, elapseMilliseconds, request);
+            _logger.LogWarning("Long-running request: {Name} ({ElapsedMilliseconds} ms)", requestName, elapseMilliseconds);
 
             return response;
         }

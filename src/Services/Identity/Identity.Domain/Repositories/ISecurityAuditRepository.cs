@@ -8,10 +8,11 @@ namespace Identity.Domain.Repositories
         string? EventType,
         string? Outcome,
         Guid? UserId,
+        string? UserName,
         int Page,
         int PageSize);
 
-    public sealed record SecurityAuditPage(
+    public sealed record SecurityAuditPageData(
         IReadOnlyList<SecurityAuditEvent> Items,
         int Page,
         int PageSize,
@@ -29,6 +30,10 @@ namespace Identity.Domain.Repositories
 
         Task<string?> GetLatestSuccessfulLoginIpAsync(Guid userId, CancellationToken cancellationToken);
 
-        Task<SecurityAuditPage> GetPageAsync(SecurityAuditFilter filter, CancellationToken cancellationToken);
+        Task<SecurityAuditPageData> GetPageAsync(SecurityAuditFilter filter, CancellationToken cancellationToken);
+
+        Task<IReadOnlyDictionary<Guid, string?>> GetUserNamesAsync(
+            IReadOnlyCollection<Guid> userIds,
+            CancellationToken cancellationToken);
     }
 }

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
+using Identity.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Identity.Api.DependencyInjection.Extensions
 {
@@ -54,16 +56,31 @@ namespace Identity.Api.DependencyInjection.Extensions
                             return;
                         }
 
-                        var unitOfWork = context.HttpContext.RequestServices.GetRequiredService<IUnitOfWork>();
-                        var session = await unitOfWork.LoginSessionRepository.FindByIdAsync(
-                            sessionId,
-                            context.HttpContext.RequestAborted);
+                        var db = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
+                        var session = await db.LoginSessions.AsNoTracking().FirstOrDefaultAsync(
+                            item => item.Id == sessionId, context.HttpContext.RequestAborted);
 
                         if (session is null
                             || session.UserId != userId
                             || session.IsRevoked
                             || session.ExpiresAtUtc <= DateTimeOffset.UtcNow)
+                        {
                             context.Fail("The login session has been revoked.");
+                            return;
+                        }
+                        var now = DateTimeOffset.UtcNow;
+                        if (!await db.Users.AnyAsync(user => user.Id == userId && user.IsActive
+                            && (!user.LockoutEnd.HasValue || user.LockoutEnd <= now), context.HttpContext.RequestAborted))
+                        {
+                            context.Fail("The account is unavailable.");
+                            return;
+                        }
+                        var ip = context.HttpContext.Connection.RemoteIpAddress?.ToString();
+                        if (session.LastActiveAtUtc < now.AddMinutes(-1) || session.IpAddress != ip)
+                            await db.LoginSessions.Where(item => item.Id == sessionId && !item.IsRevoked
+                                && (item.LastActiveAtUtc < now.AddMinutes(-1) || item.IpAddress != ip))
+                                .ExecuteUpdateAsync(update => update.SetProperty(item => item.LastActiveAtUtc, now)
+                                    .SetProperty(item => item.IpAddress, ip), context.HttpContext.RequestAborted);
                     },
                     OnAuthenticationFailed = context =>
                     {

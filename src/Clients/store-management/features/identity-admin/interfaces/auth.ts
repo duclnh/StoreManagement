@@ -26,5 +26,8 @@ export interface AuthenticatorSetup {
 }
 
 export interface AccountProfile {
+  id: string;
+  tenantId: string;
+  isAdministrator: boolean;
   twoFactorEnabled: boolean;
 }

@@ -1,5 +1,6 @@
 import type {
   AuthenticatorSetup,
+  AccountProfile,
   ChangePasswordRequest,
   LoginRequest,
   RegisterUserRequest,
@@ -9,6 +10,8 @@ import type {
 import { get, identityRequest, post } from "@/services/api-client";
 
 export const getSession = () => get<Session>("session");
+
+export const getCurrentUserProfile = () => get<AccountProfile>("auths/me");
 
 export const signIn = (credentials: LoginRequest) =>
   post<Session>("auths/login", credentials);

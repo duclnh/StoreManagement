@@ -4,15 +4,14 @@ export interface SecurityAuditEvent {
   outcome: string;
   occurredAtUtc: string;
   actorUserId: string | null;
+  actorUserName: string | null;
   subjectUserId: string | null;
+  subjectUserName: string | null;
   sessionId: string | null;
   ipAddress: string | null;
   details: string | null;
 }
 
-export interface SecurityAuditPage {
-  items: SecurityAuditEvent[];
-  page: number;
-  pageSize: number;
-  totalCount: number;
-}
+import type { PageResult } from "./page";
+
+export type SecurityAuditPage = PageResult<SecurityAuditEvent>;

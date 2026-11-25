@@ -28,7 +28,7 @@ namespace Identity.Persistence.DependencyInjections.Extensions
                 //#region =========================== SQL Server - Strategy-2 ===========================
                 builder
                    .EnableDetailedErrors(true)
-                   .EnableSensitiveDataLogging(true)
+                   .EnableSensitiveDataLogging(false)
                    .UseLazyLoadingProxies(true)
                    .UseSqlServer(
                        connectionString: configuration.GetConnectionString("DefaultConnectString"),

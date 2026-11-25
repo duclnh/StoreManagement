@@ -30,6 +30,7 @@ namespace Identity.Contract.Services.V1.Identity.Validators
             RuleFor(request => request.FirstName).NotEmpty().MaximumLength(100);
             RuleFor(request => request.LastName).NotEmpty().MaximumLength(100);
             RuleFor(request => request.Roles).NotNull();
+            RuleFor(request => request.ScopeId).NotEmpty();
         }
     }
 

@@ -39,8 +39,16 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
             }
 
             var currentRoles = await _userManager.GetRolesAsync(user);
-            if (desiredRoles.Contains(AdministratorRole, StringComparer.OrdinalIgnoreCase)
-                || currentRoles.Contains(AdministratorRole, StringComparer.OrdinalIgnoreCase))
+            var isTenantScope = request.ScopeId == request.TenantId;
+            var currentlyAdministrator = currentRoles.Contains(AdministratorRole, StringComparer.OrdinalIgnoreCase);
+            var wantsAdministrator = desiredRoles.Contains(AdministratorRole, StringComparer.OrdinalIgnoreCase);
+            if (!isTenantScope && wantsAdministrator)
+                return Result.Failure<bool>(new Error(
+                    "Identity.User.AdministratorRoleTenantScopeOnly",
+                    "The Administrator role can only be assigned at tenant scope."));
+
+            var administratorMembershipChanges = isTenantScope && currentlyAdministrator != wantsAdministrator;
+            if (administratorMembershipChanges)
             {
                 var actor = await _userManager.FindByIdAsync(request.ActorId.ToString());
                 if (actor is null
@@ -49,15 +57,9 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
                     return Result.Failure<bool>(new Error(
                         "Identity.User.PrivilegedRoleAssignmentRequiresAdministration",
                         "Only an administrator can change Administrator role membership."));
-
-                if (request.ScopeId != request.TenantId)
-                    return Result.Failure<bool>(new Error(
-                        "Identity.User.AdministratorRoleTenantScopeOnly",
-                        "The Administrator role can only be assigned at tenant scope."));
             }
 
-            var removesAdministrator = currentRoles.Contains(AdministratorRole, StringComparer.OrdinalIgnoreCase)
-                && !desiredRoles.Contains(AdministratorRole, StringComparer.OrdinalIgnoreCase);
+            var removesAdministrator = administratorMembershipChanges && currentlyAdministrator && !wantsAdministrator;
             if (removesAdministrator)
             {
                 if (request.ActorId == user.Id)
@@ -105,7 +107,7 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
                 var role = await _roleManager.FindByIdAsync(roleId.ToString());
                 if (role?.Name is not null) desiredMembershipRoles.Add(role.Name);
             }
-            if (desiredRoles.Contains(AdministratorRole, StringComparer.OrdinalIgnoreCase))
+            if ((isTenantScope && wantsAdministrator) || (!isTenantScope && currentlyAdministrator))
                 desiredMembershipRoles.Add(AdministratorRole);
 
             var rolesToRemove = currentRoles.Except(desiredMembershipRoles, StringComparer.OrdinalIgnoreCase).ToArray();

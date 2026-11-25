@@ -7,10 +7,10 @@ namespace Identity.Api.DependencyInjection.Extensions
     {
         private static readonly (string Id, string Name, string Url, string[] Actions)[] Catalog =
         [
-            ("Identity.Users", "Users", "/users", ["View", "Create", "Update", "Assign"]),
-            ("Identity.Roles", "Roles", "/roles", ["View", "Create", "Update", "Delete"]),
-            ("Identity.Sessions", "Sessions", "/sessions", ["View", "Revoke"]),
-            ("Identity.Security", "Security", "/security", ["View", "Update"])
+            ("Identity.Users", "Users", "/users", ["View", "Create", "Update", "Delete", "Import", "Export", "Assign"]),
+            ("Identity.Roles", "Roles", "/roles", ["View", "Create", "Update", "Delete", "Import", "Export", "Assign"]),
+            ("Identity.Sessions", "Sessions", "/sessions", ["View", "Create", "Update", "Delete", "Import", "Export", "Revoke"]),
+            ("Identity.Security", "Security", "/security", ["View", "Create", "Update", "Delete", "Import", "Export"])
         ];
 
         public static async Task SeedIdentityPermissionCatalogAsync(this WebApplication app)

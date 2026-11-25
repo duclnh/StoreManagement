@@ -264,6 +264,9 @@ namespace Identity.Persistence.Migrations
 
             modelBuilder.Entity("Identity.Domain.Entities.Identity.LoginSession", b =>
                 {
+                    b.Property<string>("PreviousRefreshTokenHash").HasMaxLength(64).HasColumnType("nvarchar(64)");
+                    b.Property<string>("ProtectedRefreshToken").HasMaxLength(1024).HasColumnType("nvarchar(1024)");
+                    b.Property<DateTimeOffset?>("RefreshRetryUntilUtc").HasColumnType("datetimeoffset");
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
@@ -370,6 +373,7 @@ namespace Identity.Persistence.Migrations
 
             modelBuilder.Entity("Identity.Domain.Entities.Identity.SecurityAuditEvent", b =>
                 {
+                    b.Property<Guid?>("ScopeId").HasColumnType("uniqueidentifier");
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
@@ -418,6 +422,8 @@ namespace Identity.Persistence.Migrations
                     b.HasIndex("SubjectUserId", "OccurredAtUtc");
 
                     b.HasIndex("TenantId", "OccurredAtUtc");
+
+                    b.HasIndex("TenantId", "ScopeId", "OccurredAtUtc");
 
                     b.ToTable("SecurityAuditEvents", (string)null);
                 });

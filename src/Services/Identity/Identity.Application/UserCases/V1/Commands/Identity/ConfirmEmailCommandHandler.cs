@@ -30,7 +30,7 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
                 _unitOfWork.SecurityAuditRepository.Record(
                     SecurityAuditEventTypes.EmailConfirmed,
                     SecurityAuditOutcomes.Succeeded,
-                    user.Id);
+                    user.Id, tenantId: user.TenantId);
                 await _unitOfWork.SaveChangeAsync(cancellationToken);
             }
             return result.Succeeded ? Result.Success(true) : InvalidConfirmation();

@@ -36,11 +36,28 @@
             bool TwoFactorEnabled,
             IReadOnlyList<string> Roles);
 
-        public sealed record UserPage(
-            IReadOnlyList<AdminUser> Items,
-            int Page,
-            int PageSize,
-            int TotalCount);
+        public sealed record CurrentUserProfile(
+            Guid Id,
+            Guid TenantId,
+            bool IsAdministrator,
+            bool TwoFactorEnabled);
+
+        public sealed record IdentityAdminAccess(
+            Guid TenantId,
+            Guid ScopeId,
+            bool IsAdministrator,
+            bool CanViewUsers,
+            bool CanCreateUsers,
+            bool CanUpdateUsers,
+            bool CanAssignUsers,
+            bool CanViewRoles,
+            bool CanCreateRoles,
+            bool CanUpdateRoles,
+            bool CanDeleteRoles,
+            bool CanManageRolePermissions,
+            bool CanViewAudit,
+            bool CanViewSessions,
+            bool CanRevokeSessions);
 
         public sealed record AdminRole(
             Guid Id,
@@ -60,21 +77,20 @@
             string ActionName,
             bool IsGranted);
 
+        public sealed record IdentityClaim(string Type, string Value);
+
         public sealed record SecurityAuditEvent(
             Guid Id,
             string EventType,
             string Outcome,
             DateTimeOffset OccurredAtUtc,
             Guid? ActorUserId,
+            string? ActorUserName,
             Guid? SubjectUserId,
+            string? SubjectUserName,
             Guid? SessionId,
             string? IpAddress,
             string? Details);
 
-        public sealed record SecurityAuditPage(
-            IReadOnlyList<SecurityAuditEvent> Items,
-            int Page,
-            int PageSize,
-            int TotalCount);
     }
 }

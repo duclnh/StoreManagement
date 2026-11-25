@@ -19,6 +19,12 @@ export const revokeSession = (sessionId: string) =>
 export const revokeOtherSessions = () =>
   post("auths/sessions/revoke-others", {});
 
+export const listUserSessions = (userId: string, scopeId: string) =>
+  get<LoginSession[]>(`admin/users/${encodeURIComponent(userId)}/sessions?${new URLSearchParams({ scopeId })}`);
+
+export const revokeUserSession = (userId: string, sessionId: string, scopeId: string) =>
+  post(`admin/users/${encodeURIComponent(userId)}/sessions/revoke?${new URLSearchParams({ scopeId })}`, { sessionId });
+
 function isLoginSession(value: unknown): value is LoginSession {
   if (!value || typeof value !== "object") return false;
   const session = value as Record<string, unknown>;

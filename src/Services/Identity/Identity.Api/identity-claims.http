@@ -1,0 +1,41 @@
+@api = http://localhost:5168/api/v1/admin
+@accessToken = <access-token>
+@scopeId = 11111111-1111-1111-1111-111111111111
+@userId = 22222222-2222-2222-2222-222222222222
+@roleId = 33333333-3333-3333-3333-333333333333
+
+### List a user's custom claims
+GET {{api}}/users/{{userId}}/claims?scopeId={{scopeId}}
+Authorization: Bearer {{accessToken}}
+
+### Add a custom claim to a user
+POST {{api}}/users/{{userId}}/claims?scopeId={{scopeId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "type": "department",
+  "value": "sales"
+}
+
+### Remove a custom claim from a user
+DELETE {{api}}/users/{{userId}}/claims?scopeId={{scopeId}}&type=department&value=sales
+Authorization: Bearer {{accessToken}}
+
+### List a role's custom claims
+GET {{api}}/roles/{{roleId}}/claims?scopeId={{scopeId}}
+Authorization: Bearer {{accessToken}}
+
+### Add a custom claim to a role
+POST {{api}}/roles/{{roleId}}/claims?scopeId={{scopeId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "type": "feature",
+  "value": "inventory"
+}
+
+### Remove a custom claim from a role
+DELETE {{api}}/roles/{{roleId}}/claims?scopeId={{scopeId}}&type=feature&value=inventory
+Authorization: Bearer {{accessToken}}

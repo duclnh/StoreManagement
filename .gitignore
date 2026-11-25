@@ -66,6 +66,15 @@ BenchmarkDotNet.Artifacts/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+.artifacts/
+
+tests/
+!tests/
+tests/*
+!tests/Identity.Regression/
+tests/Identity.Regression/*
+!tests/Identity.Regression/*.cs
+!tests/Identity.Regression/*.csproj
 
 # Tye
 .tye/

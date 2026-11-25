@@ -23,6 +23,8 @@ namespace Identity.Presentation.Apis.V1.Identity
 
             group1.MapPost("register", Register).AllowAnonymous();
             group1.MapPost("login", Authentication).AllowAnonymous();
+            group1.MapPost("logout", Logout).AllowAnonymous();
+            group1.MapGet("me", GetCurrentUserProfile);
             group1.MapPost("email/confirmation/request", RequestEmailConfirmation).AllowAnonymous();
             group1.MapPost("email/confirm", ConfirmEmail).AllowAnonymous();
             group1.MapPost("password/forgot", RequestPasswordReset).AllowAnonymous();
@@ -97,17 +99,24 @@ namespace Identity.Presentation.Apis.V1.Identity
 
         private async Task<IResult> Authentication(ISender sender, HttpContext context, [FromBody] Login login)
         {
+            var agent = context.Request.Headers.UserAgent.ToString();
             var request = new Login(
                 login.Email,
                 login.Password,
-                context.Request.Headers.UserAgent.ToString(),
+                agent.Length > 1024 ? agent[..1024] : agent,
                 context.Connection.RemoteIpAddress?.ToString(),
                 login.TwoFactorCode);
-            var result = await sender.Send(request);
+            var result = await sender.Send(request, context.RequestAborted);
             if (result.IsFailure)
                 return HandlerFailure(result);
 
             return Results.Ok(result);
+        }
+
+        private async Task<IResult> Logout(ISender sender, [FromBody] LogoutSession request, CancellationToken cancellationToken)
+        {
+            var result = await sender.Send(request, cancellationToken);
+            return result.IsFailure ? HandlerFailure(result) : Results.NoContent();
         }
 
         private async Task<IResult> RevokeToken(ISender sender, ClaimsPrincipal user, [FromBody] RevokeSession request)
@@ -142,6 +151,15 @@ namespace Identity.Presentation.Apis.V1.Identity
                 return HandlerFailure(result);
 
             return Results.Ok(result);
+        }
+
+        private async Task<IResult> GetCurrentUserProfile(ISender sender, ClaimsPrincipal user, CancellationToken cancellationToken)
+        {
+            if (!TryGetUserId(user, out var userId))
+                return Results.Unauthorized();
+
+            var result = await sender.Send(new QueryContracts.GetCurrentUserProfile(userId), cancellationToken);
+            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result);
         }
 
         private async Task<IResult> RevokeOtherSessions(ISender sender, ClaimsPrincipal user)
@@ -215,4 +233,3 @@ namespace Identity.Presentation.Apis.V1.Identity
         }
     }
 }
-

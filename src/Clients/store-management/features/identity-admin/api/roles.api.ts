@@ -1,15 +1,19 @@
-import type { IdentityScope, Role, RolePermission, SaveRoleRequest, SetRolePermissionsRequest } from "../interfaces";
-import type { IdentityTenant } from "../interfaces";
+import type { IdentityAdminAccess, IdentityScope, Role, RolePermission, SaveRoleRequest, SetRolePermissionsRequest } from "../interfaces";
+import type { IdentityAdminScope, IdentityTenant } from "../interfaces";
 import { del, get, identityRequest, post, put } from "@/services/api-client";
 
-export const listRoles = () => get<Role[]>("admin/roles");
+export const listRoles = (scopeId?: string) =>
+  get<Role[]>(`admin/roles${scopeId ? `?${new URLSearchParams({ scopeId })}` : ""}`);
 
 export const listIdentityScopes = () => get<IdentityScope[]>("admin/scopes");
+
+export const getIdentityAdminAccess = (scopeId: string) =>
+  get<IdentityAdminAccess>(`admin/access?${new URLSearchParams({ scopeId })}`);
 
 export const listIdentityTenants = () => get<IdentityTenant[]>("admin/tenants");
 
 export const listTenantAdminScopes = (tenantId: string) =>
-  identityRequest<IdentityScope[]>(`admin/tenants/${encodeURIComponent(tenantId)}/scopes`, {
+  identityRequest<IdentityAdminScope[]>(`admin/tenants/${encodeURIComponent(tenantId)}/scopes`, {
     headers: { "X-Tenant-Id": tenantId },
   });
 
@@ -48,9 +52,12 @@ export const getRolePermissions = (roleId: string, scopeId: string) =>
 export const setRolePermissions = (roleId: string, scopeId: string, input: SetRolePermissionsRequest) =>
   put(`admin/roles/${encodeURIComponent(roleId)}/permissions?${new URLSearchParams({ scopeId })}`, input);
 
-export function saveRole(id: string | undefined, input: SaveRoleRequest) {
-  return id ? put(`admin/roles/${encodeURIComponent(id)}`, input) : post("admin/roles", input);
+export function saveRole(id: string | undefined, input: SaveRoleRequest, scopeId?: string) {
+  const suffix = scopeId ? `?${new URLSearchParams({ scopeId })}` : "";
+  return id
+    ? put(`admin/roles/${encodeURIComponent(id)}${suffix}`, input)
+    : post(`admin/roles${suffix}`, input);
 }
 
-export const deleteRole = (id: string) =>
-  del(`admin/roles/${encodeURIComponent(id)}`);
+export const deleteRole = (id: string, scopeId?: string) =>
+  del(`admin/roles/${encodeURIComponent(id)}${scopeId ? `?${new URLSearchParams({ scopeId })}` : ""}`);

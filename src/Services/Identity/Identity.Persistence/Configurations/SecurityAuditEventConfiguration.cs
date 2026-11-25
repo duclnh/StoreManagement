@@ -20,6 +20,7 @@ namespace Identity.Persistence.Configurations
             builder.HasIndex(auditEvent => new { auditEvent.ActorUserId, auditEvent.OccurredAtUtc });
             builder.HasIndex(auditEvent => new { auditEvent.SubjectUserId, auditEvent.OccurredAtUtc });
             builder.HasIndex(auditEvent => new { auditEvent.TenantId, auditEvent.OccurredAtUtc });
+            builder.HasIndex(auditEvent => new { auditEvent.TenantId, auditEvent.ScopeId, auditEvent.OccurredAtUtc });
             builder.HasIndex(auditEvent => new { auditEvent.EventType, auditEvent.OccurredAtUtc });
         }
     }

@@ -22,8 +22,8 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
             if (session is null || session.UserId != request.UserId)
                 return Result.Failure<Unit>(new Error("Identity.Authentication.SessionNotFound", "The login session was not found."));
 
-            session.Revoke(DateTimeOffset.UtcNow);
-            _unitOfWork.LoginSessionRepository.Update(session);
+            var count = await _unitOfWork.RevokeLoginSessionsAsync(request.UserId, request.SessionId, cancellationToken: cancellationToken);
+            if (count == 0) return Result.Success(Unit.Value);
             _unitOfWork.SecurityAuditRepository.Record(
                 SecurityAuditEventTypes.Logout,
                 SecurityAuditOutcomes.Succeeded,

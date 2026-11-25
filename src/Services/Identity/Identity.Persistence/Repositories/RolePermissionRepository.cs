@@ -180,6 +180,58 @@ namespace Identity.Persistence.Repositories
                 .AnyAsync(cancellationToken);
         }
 
+        public async Task<IReadOnlyList<(string FunctionId, string ActionId)>> GetGrantedPermissionsAsync(
+            Guid userId,
+            Guid tenantId,
+            Guid scopeId,
+            CancellationToken cancellationToken)
+        {
+            var path = await GetScopePathAsync(tenantId, scopeId, cancellationToken);
+            if (path is null)
+                return [];
+
+            var permissions = await (
+                from assignment in _dbContext.UserRoleAssignments.AsNoTracking()
+                where assignment.UserId == userId
+                    && ((assignment.ScopeType == IdentityScopeType.Tenant && assignment.ScopeId == path.TenantId)
+                        || (path.OrganizationId.HasValue
+                            && assignment.ScopeType == IdentityScopeType.Organization
+                            && assignment.ScopeId == path.OrganizationId.Value)
+                        || (path.BranchId.HasValue
+                            && assignment.ScopeType == IdentityScopeType.Branch
+                            && assignment.ScopeId == path.BranchId.Value))
+                join user in _dbContext.Users.AsNoTracking()
+                    on assignment.UserId equals user.Id
+                where user.TenantId == tenantId
+                join role in _dbContext.Roles.AsNoTracking()
+                    on assignment.RoleId equals role.Id
+                where role.TenantId == tenantId
+                join permission in _dbContext.Permissions.AsNoTracking()
+                    on assignment.RoleId equals permission.RoleId
+                where ((permission.ScopeType == IdentityScopeType.Tenant && permission.ScopeId == path.TenantId)
+                        || (path.OrganizationId.HasValue
+                            && permission.ScopeType == IdentityScopeType.Organization
+                            && permission.ScopeId == path.OrganizationId.Value)
+                        || (path.BranchId.HasValue
+                            && permission.ScopeType == IdentityScopeType.Branch
+                            && permission.ScopeId == path.BranchId.Value))
+                join function in _dbContext.Functions.AsNoTracking()
+                    on permission.FunctionId equals function.Id
+                where function.IsActive != false
+                join action in _dbContext.Actions.AsNoTracking()
+                    on permission.ActionId equals action.Id
+                where action.IsActive != false
+                join actionInFunction in _dbContext.ActionInFunctions.AsNoTracking()
+                    on new { permission.FunctionId, permission.ActionId }
+                    equals new { actionInFunction.FunctionId, actionInFunction.ActionId }
+                select new { permission.FunctionId, permission.ActionId })
+                .Distinct()
+                .ToListAsync(cancellationToken);
+            return permissions
+                .Select(permission => (permission.FunctionId, permission.ActionId))
+                .ToArray();
+        }
+
         public async Task<bool> ReplaceRolePermissionsAsync(
             Guid roleId,
             Guid tenantId,

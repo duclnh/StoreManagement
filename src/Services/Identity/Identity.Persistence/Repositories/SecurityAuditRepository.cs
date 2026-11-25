@@ -52,7 +52,8 @@ namespace Identity.Persistence.Repositories
                 sessionId,
                 tenantId ?? _tenantContext.TenantId,
                 ipAddress,
-                details));
+                details,
+                _tenantContext.RequestedScopeId ?? tenantId));
         }
 
         public async Task<string?> GetLatestSuccessfulLoginIpAsync(
@@ -68,14 +69,22 @@ namespace Identity.Persistence.Repositories
                 .Select(item => item.IpAddress)
                 .FirstOrDefaultAsync(cancellationToken);
 
-        public async Task<SecurityAuditPage> GetPageAsync(
+        public async Task<SecurityAuditPageData> GetPageAsync(
             SecurityAuditFilter filter,
             CancellationToken cancellationToken)
         {
             var query = _dbContext.Set<SecurityAuditEvent>().AsNoTracking();
             if (!_tenantContext.TenantId.HasValue)
-                return new SecurityAuditPage([], filter.Page, filter.PageSize, 0);
-            query = query.Where(item => item.TenantId == _tenantContext.TenantId.Value);
+                return new SecurityAuditPageData([], filter.Page, filter.PageSize, 0);
+            var tenantId = _tenantContext.TenantId.Value;
+            query = query.Where(item => item.TenantId == tenantId
+                || (_tenantContext.IsPlatformAdministrator && item.TenantId == null));
+            if (_tenantContext.RequestedScopeId is Guid scopeId && scopeId != tenantId)
+            {
+                var branches = _dbContext.Branches.Where(branch => branch.OrganizationId == scopeId
+                    && branch.Organization.TenantId == tenantId);
+                query = query.Where(item => item.ScopeId == scopeId || branches.Any(branch => branch.Id == item.ScopeId));
+            }
             if (filter.FromUtc.HasValue)
                 query = query.Where(item => item.OccurredAtUtc >= filter.FromUtc.Value);
             if (filter.ToUtc.HasValue)
@@ -86,6 +95,18 @@ namespace Identity.Persistence.Repositories
                 query = query.Where(item => item.Outcome == filter.Outcome);
             if (filter.UserId.HasValue)
                 query = query.Where(item => item.ActorUserId == filter.UserId || item.SubjectUserId == filter.UserId);
+            if (!string.IsNullOrWhiteSpace(filter.UserName))
+            {
+                var matchingUserIds = _dbContext.Users
+                    .AsNoTracking()
+                    .Where(user => user.TenantId == _tenantContext.TenantId.Value
+                        && ((user.UserName != null && user.UserName.Contains(filter.UserName))
+                            || (user.Email != null && user.Email.Contains(filter.UserName))))
+                    .Select(user => user.Id);
+                query = query.Where(item =>
+                    (item.ActorUserId.HasValue && matchingUserIds.Contains(item.ActorUserId.Value))
+                    || (item.SubjectUserId.HasValue && matchingUserIds.Contains(item.SubjectUserId.Value)));
+            }
 
             var totalCount = await query.CountAsync(cancellationToken);
             var items = await query
@@ -95,7 +116,23 @@ namespace Identity.Persistence.Repositories
                 .Take(filter.PageSize)
                 .ToListAsync(cancellationToken);
 
-            return new SecurityAuditPage(items, filter.Page, filter.PageSize, totalCount);
+            return new SecurityAuditPageData(items, filter.Page, filter.PageSize, totalCount);
+        }
+
+        public async Task<IReadOnlyDictionary<Guid, string?>> GetUserNamesAsync(
+            IReadOnlyCollection<Guid> userIds,
+            CancellationToken cancellationToken)
+        {
+            if (userIds.Count == 0)
+                return new Dictionary<Guid, string?>();
+
+            var users = await _dbContext.Users
+                .AsNoTracking()
+                .Where(user => userIds.Contains(user.Id))
+                .Select(user => new { user.Id, user.UserName })
+                .ToListAsync(cancellationToken);
+
+            return users.ToDictionary(user => user.Id, user => user.UserName);
         }
     }
 }

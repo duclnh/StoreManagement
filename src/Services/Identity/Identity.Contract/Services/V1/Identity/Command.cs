@@ -1,5 +1,6 @@
 ﻿using Identity.Contract.Abstraction.Message;
 using static Identity.Contract.Services.V1.Identity.Response;
+using System.ComponentModel.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,20 @@ namespace Identity.Contract.Services.V1.Identity
             Guid TenantId,
             Guid ScopeId,
             List<string> Roles) : ICommand<bool>;
-        public record CreateManagedUser(string Email, string Password, string FirstName, string LastName, List<string> Roles) : ICommand<Guid>;
+        public record ChangeIdentityClaim(
+            Guid OwnerId,
+            Guid TenantId,
+            IdentityClaimOwnerType OwnerType,
+            string Type,
+            string Value,
+            bool Add) : ICommand<bool>;
+        public record CreateManagedUser(
+            string Email,
+            string Password,
+            string FirstName,
+            string LastName,
+            List<string> Roles,
+            Guid ScopeId) : ICommand<Guid>;
         public record CreateRole(string Name, string RoleCode, string Description) : ICommand<Guid>;
         public record UpdateRole(Guid RoleId, string Name, string RoleCode, string Description) : ICommand<bool>;
         public record DeleteRole(Guid RoleId) : ICommand<bool>;
@@ -48,6 +62,14 @@ namespace Identity.Contract.Services.V1.Identity
         public sealed record UpdateUserRequest(string FirstName, string LastName);
         public sealed record SetUserActiveRequest(bool IsActive);
         public sealed record AssignUserRolesRequest(List<string> Roles);
+        public sealed record IdentityClaimRequest
+        {
+            [Required, StringLength(256)]
+            public required string Type { get; init; }
+
+            [Required, StringLength(1024)]
+            public required string Value { get; init; }
+        }
         public sealed record CreateManagedUserRequest(string Email, string Password, string FirstName, string LastName, List<string> Roles);
         public sealed record UpdateRoleRequest(string Name, string RoleCode, string Description);
         public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);

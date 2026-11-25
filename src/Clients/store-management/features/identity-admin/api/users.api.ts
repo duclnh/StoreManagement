@@ -1,5 +1,4 @@
 import type {
-  AccountProfile,
   NewUserDraft,
   UpdateUserRequest,
   UpdateUserStatusRequest,
@@ -10,18 +9,21 @@ import { get, patch, post, put } from "@/services/api-client";
 
 export const emptyUserPage: UserPage = {
   items: [],
-  page: 1,
+  pageIndex: 1,
   pageSize: 25,
   totalCount: 0,
+  hasNextPage: false,
+  hasPreviousPage: false,
 };
 
-export function listUsers(search: string, page: number, pageSize = 25) {
+export function listUsers(search: string, page: number, pageSize = 25, scopeId?: string) {
   const query = new URLSearchParams({ search, page: String(page), pageSize: String(pageSize) });
+  if (scopeId) query.set("scopeId", scopeId);
   return get<UserPage>(`admin/users?${query}`);
 }
 
-export const updateUser = (userId: string, input: UpdateUserRequest) =>
-  put(`admin/users/${encodeURIComponent(userId)}`, input);
+export const updateUser = (userId: string, input: UpdateUserRequest, scopeId?: string) =>
+  put(`admin/users/${encodeURIComponent(userId)}${scopeId ? `?${new URLSearchParams({ scopeId })}` : ""}`, input);
 
 export const listUserRoles = (userId: string, scopeId: string) =>
   get<string[]>(`admin/users/${encodeURIComponent(userId)}/roles?${new URLSearchParams({ scopeId })}`);
@@ -29,11 +31,11 @@ export const listUserRoles = (userId: string, scopeId: string) =>
 export const updateUserRoles = (userId: string, scopeId: string, input: UserRolesRequest) =>
   put(`admin/users/${encodeURIComponent(userId)}/roles?${new URLSearchParams({ scopeId })}`, input);
 
-export const updateUserStatus = (userId: string, input: UpdateUserStatusRequest) =>
-  patch(`admin/users/${encodeURIComponent(userId)}/status`, input);
+export const updateUserStatus = (userId: string, input: UpdateUserStatusRequest, scopeId?: string) =>
+  patch(`admin/users/${encodeURIComponent(userId)}/status${scopeId ? `?${new URLSearchParams({ scopeId })}` : ""}`, input);
 
-export async function createUser(input: NewUserDraft) {
-  const response = await post<unknown>("admin/users", input);
+export async function createUser(input: NewUserDraft, scopeId?: string) {
+  const response = await post<unknown>(`admin/users${scopeId ? `?${new URLSearchParams({ scopeId })}` : ""}`, input);
   const userId = typeof response === "string"
     ? response
     : response && typeof response === "object"
@@ -43,16 +45,4 @@ export async function createUser(input: NewUserDraft) {
   if (typeof userId !== "string" || !userId) {
     throw new Error("Identity API returned an invalid managed user response.");
   }
-}
-
-export async function getAccountProfile(userId: string): Promise<AccountProfile> {
-  const response = await get<unknown>(`admin/users/${encodeURIComponent(userId)}`);
-  if (!response || typeof response !== "object") {
-    throw new Error("Identity API returned an invalid account profile.");
-  }
-  const profile = response as Record<string, unknown>;
-  if (typeof profile.twoFactorEnabled !== "boolean") {
-    throw new Error("Identity API returned an invalid account profile.");
-  }
-  return { twoFactorEnabled: profile.twoFactorEnabled };
 }

@@ -16,6 +16,8 @@ namespace Identity.Domain.Abstractions
         IIdentityScopeRepository IdentityScopeRepository { get; }
         ISecurityAuditRepository SecurityAuditRepository { get; }
         IUserRoleAssignmentRepository UserRoleAssignmentRepository { get; }
+        Task<int> RevokeLoginSessionsAsync(Guid userId, Guid? sessionId = null, Guid? exceptSessionId = null,
+            CancellationToken cancellationToken = default);
 
         Task ExecuteInSerializableTransactionAsync(
             Func<CancellationToken, Task> operation,

@@ -41,6 +41,14 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
                 return Result.Failure<Guid>(new Error("Identity.Tenant.Required", "A tenant context is required."));
 
             var roles = request.Roles.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            if (await _unitOfWork.RolePermissionRepository.GetScopePathAsync(tenantId, request.ScopeId, cancellationToken) is null)
+                return Result.Failure<Guid>(new Error("Identity.Scope.Invalid", "The selected scope is invalid."));
+            if (roles.Length > 0 && !_tenantContext.IsPlatformAdministrator
+                && (_tenantContext.UserId is not Guid actorId || !await _unitOfWork.RolePermissionRepository.PermissionExistsAsync(
+                    actorId, tenantId, request.ScopeId, "Identity.Users", "Assign", cancellationToken)))
+                return Result.Failure<Guid>(new Error("Identity.User.RoleAssignmentForbidden", "Assign permission is required to grant initial roles."));
+            if (request.ScopeId != tenantId && roles.Length == 0)
+                return Result.Failure<Guid>(new Error("Identity.User.ScopeRoleRequired", "Select an initial role to establish organization or branch membership."));
             foreach (var role in roles)
             {
                 if (string.Equals(role, AdministratorRole, StringComparison.OrdinalIgnoreCase))
@@ -99,7 +107,7 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
                 if (!await _unitOfWork.UserRoleAssignmentRepository.ReplaceRoleIdsAtScopeAsync(
                         user.Id,
                         tenantId,
-                        tenantId,
+                        request.ScopeId,
                         roleIds,
                         cancellationToken))
                 {

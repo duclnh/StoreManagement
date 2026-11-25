@@ -44,6 +44,23 @@ namespace Identity.Persistence
         public ISecurityAuditRepository SecurityAuditRepository { get; }
         public IUserRoleAssignmentRepository UserRoleAssignmentRepository { get; }
 
+        public async Task<int> RevokeLoginSessionsAsync(Guid userId, Guid? sessionId = null, Guid? exceptSessionId = null,
+            CancellationToken cancellationToken = default)
+        {
+            var now = DateTimeOffset.UtcNow;
+            var query = _dbContext.LoginSessions.Where(item => item.UserId == userId && !item.IsRevoked
+                && (!sessionId.HasValue || item.Id == sessionId.Value)
+                && (!exceptSessionId.HasValue || item.Id != exceptSessionId.Value));
+            // Atomic column updates win over concurrent refreshes without writing a stale token hash.
+            if (_dbContext.Database.IsRelational())
+                return await query.ExecuteUpdateAsync(update => update.SetProperty(item => item.IsRevoked, true)
+                    .SetProperty(item => item.RevokedAtUtc, now), cancellationToken);
+            var sessions = await query.ToListAsync(cancellationToken);
+            foreach (var session in sessions) session.Revoke(now);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return sessions.Count;
+        }
+
         public async Task ExecuteInSerializableTransactionAsync(
             Func<CancellationToken, Task> operation,
             CancellationToken cancellationToken = default)

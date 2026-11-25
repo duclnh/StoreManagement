@@ -32,7 +32,7 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
             _unitOfWork.SecurityAuditRepository.Record(
                 SecurityAuditEventTypes.PasswordReset,
                 SecurityAuditOutcomes.Succeeded,
-                user.Id);
+                user.Id, tenantId: user.TenantId);
             await _unitOfWork.SaveChangeAsync(cancellationToken);
             return Result.Success(true);
         }

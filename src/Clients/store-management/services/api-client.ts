@@ -1,7 +1,7 @@
 import axios, { type AxiosRequestConfig } from "axios";
 
 export class IdentityApiError extends Error {
-  constructor(message: string, readonly code?: string) {
+  constructor(message: string, readonly code?: string, readonly status?: number) {
     super(message);
     this.name = "IdentityApiError";
   }
@@ -9,6 +9,7 @@ export class IdentityApiError extends Error {
 
 const identityHttpClient = axios.create({
   baseURL: "/api/identity",
+  timeout: 15_000,
   headers: { Accept: "application/json" },
 });
 
@@ -30,16 +31,29 @@ export async function identityRequest<T>(path: string, init?: RequestInit): Prom
   try {
     const response = await identityHttpClient.request<T>(config);
     if (response.status === 204) return undefined as T;
-    return response.data;
+    return unwrapResultValue(response.data);
   } catch (cause: unknown) {
     if (!axios.isAxiosError<Record<string, unknown>>(cause)) throw cause;
     const errorResponse = cause.response;
+    if (errorResponse?.status === 401 && typeof window !== "undefined")
+      window.dispatchEvent(new Event("identity-session-expired"));
     const payload = errorResponse?.data;
     throw new IdentityApiError(
       String(payload?.detail ?? payload?.title ?? payload?.error ?? cause.message),
       typeof payload?.type === "string" ? payload.type : undefined,
+      errorResponse?.status,
     );
   }
+}
+
+function unwrapResultValue<T>(payload: T): T {
+  if (!payload || typeof payload !== "object") return payload;
+  const result = payload as Record<string, unknown>;
+  const isSuccess = result.isSuccess ?? result.IsSuccess;
+  if (isSuccess !== true) return payload;
+  if ("value" in result) return result.value as T;
+  if ("Value" in result) return result.Value as T;
+  return payload;
 }
 
 export function get<T>(path: string): Promise<T> {

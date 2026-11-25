@@ -15,7 +15,8 @@ namespace Identity.Domain.Entities.Identity
             Guid? sessionId,
             Guid? tenantId,
             string? ipAddress,
-            string? details)
+            string? details,
+            Guid? scopeId = null)
         {
             Id = Guid.NewGuid();
             EventType = eventType;
@@ -25,6 +26,7 @@ namespace Identity.Domain.Entities.Identity
             SubjectUserId = subjectUserId;
             SessionId = sessionId;
             TenantId = tenantId;
+            ScopeId = scopeId;
             IpAddress = ipAddress;
             Details = details;
         }
@@ -37,6 +39,7 @@ namespace Identity.Domain.Entities.Identity
         public virtual Guid? SubjectUserId { get; protected set; }
         public virtual Guid? SessionId { get; protected set; }
         public virtual Guid? TenantId { get; protected set; }
+        public virtual Guid? ScopeId { get; protected set; }
         public virtual string? IpAddress { get; protected set; }
         public virtual string? Details { get; protected set; }
     }
@@ -55,10 +58,12 @@ namespace Identity.Domain.Entities.Identity
         public const string UserUpdated = "Users.Updated";
         public const string UserStatusChanged = "Users.StatusChanged";
         public const string UserRolesChanged = "Users.RolesChanged";
+        public const string UserClaimsChanged = "Users.ClaimsChanged";
         public const string RoleCreated = "Roles.Created";
         public const string RoleUpdated = "Roles.Updated";
         public const string RoleDeleted = "Roles.Deleted";
         public const string RolePermissionsChanged = "Roles.PermissionsChanged";
+        public const string RoleClaimsChanged = "Roles.ClaimsChanged";
         public const string ScopeCreated = "IdentityScope.Created";
         public const string ScopeStatusChanged = "IdentityScope.StatusChanged";
         public const string NewLoginIp = "SecurityAnomaly.NewLoginIp";

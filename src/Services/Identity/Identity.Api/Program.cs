@@ -9,6 +9,10 @@ using HealthChecks.UI.Client;
 using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
+using Identity.Application.DependencyInjection.Options;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Net;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +51,23 @@ builder.Services
     });
 
 builder.Services.AddJwtAuthenticationApplication(builder.Configuration);
+var dataProtection = builder.Services.AddDataProtection();
+var protectionApplicationName = builder.Configuration["DataProtection:ApplicationName"];
+if (!string.IsNullOrWhiteSpace(protectionApplicationName)) dataProtection.SetApplicationName(protectionApplicationName);
+var keyRingPath = builder.Configuration["DataProtection:KeyRingPath"];
+if (!string.IsNullOrWhiteSpace(keyRingPath)) dataProtection.PersistKeysToFileSystem(new DirectoryInfo(keyRingPath));
+builder.Services.AddOptions<LoginSessionOptions>()
+    .Bind(builder.Configuration.GetSection("LoginSessions"))
+    .ValidateDataAnnotations().ValidateOnStart();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+    foreach (var address in builder.Configuration.GetSection("TrustedProxies").Get<string[]>() ?? [])
+        options.KnownProxies.Add(IPAddress.Parse(address));
+    if (options.KnownProxies.Count == 0) options.ForwardedHeaders = ForwardedHeaders.None;
+});
 
 
 builder.Services.AddMediatorApplication();
@@ -68,6 +89,7 @@ builder.Services.AddRepositoryPersistence();
 
 
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
+builder.Services.AddTransient<FailedSecurityAuditMiddleware>();
 
 var app = builder.Build();
 
@@ -75,6 +97,7 @@ await app.SeedAdministratorFromEnvironmentAsync();
 await app.SeedIdentityPermissionCatalogAsync();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseForwardedHeaders();
 app.MapCarter();
 
 // Configure the HTTP request pipeline.
@@ -86,6 +109,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+app.UseMiddleware<FailedSecurityAuditMiddleware>();
 
 app.UseAuthorization();
 

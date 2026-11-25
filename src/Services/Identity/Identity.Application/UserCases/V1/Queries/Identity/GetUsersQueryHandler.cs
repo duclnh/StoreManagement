@@ -8,7 +8,7 @@ using static Identity.Contract.Services.V1.Identity.Query;
 
 namespace Identity.Application.UserCases.V1.Queries.Identity
 {
-    public sealed class GetUsersQueryHandler : IQueryHandler<GetUsers, Response.UserPage>
+    public sealed class GetUsersQueryHandler : IQueryHandler<GetUsers, PageResult<Response.AdminUser>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<AppUser> _userManager;
@@ -24,10 +24,10 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
             _tenantContext = tenantContext;
         }
 
-        public async Task<Result<Response.UserPage>> Handle(GetUsers request, CancellationToken cancellationToken)
+        public async Task<Result<PageResult<Response.AdminUser>>> Handle(GetUsers request, CancellationToken cancellationToken)
         {
             if (_tenantContext.TenantId is not Guid tenantId)
-                return Result.Failure<Response.UserPage>(new Error("Identity.Tenant.Required", "A tenant context is required."));
+                return Result.Failure<PageResult<Response.AdminUser>>(new Error("Identity.Tenant.Required", "A tenant context is required."));
 
             var search = string.IsNullOrWhiteSpace(request.Search) ? null : request.Search.Trim();
             var totalCount = await _unitOfWork.AppUserRepository.CountAsync(tenantId, search, cancellationToken);
@@ -45,7 +45,11 @@ namespace Identity.Application.UserCases.V1.Queries.Identity
                 items.Add(MapUser(user, roles));
             }
 
-            return Result.Success(new Response.UserPage(items, request.Page, request.PageSize, totalCount));
+            return Result.Success(PageResult<Response.AdminUser>.Create(
+                items,
+                request.Page,
+                request.PageSize,
+                totalCount));
         }
 
         internal static Response.AdminUser MapUser(AppUser user, IEnumerable<string> roles) =>

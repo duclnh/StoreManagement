@@ -11,6 +11,9 @@ export interface IdentityScope {
   name: string;
   scopeType: number;
   parentId: string | null;
+}
+
+export interface IdentityAdminScope extends IdentityScope {
   isActive: boolean;
 }
 
@@ -19,6 +22,24 @@ export interface IdentityTenant {
   name: string;
   isActive: boolean;
   createdAtUtc: string;
+}
+
+export interface IdentityAdminAccess {
+  tenantId: string;
+  scopeId: string;
+  isAdministrator: boolean;
+  canViewUsers: boolean;
+  canCreateUsers: boolean;
+  canUpdateUsers: boolean;
+  canAssignUsers: boolean;
+  canViewRoles: boolean;
+  canCreateRoles: boolean;
+  canUpdateRoles: boolean;
+  canDeleteRoles: boolean;
+  canManageRolePermissions: boolean;
+  canViewAudit: boolean;
+  canViewSessions: boolean;
+  canRevokeSessions: boolean;
 }
 
 export interface RoleDraft {

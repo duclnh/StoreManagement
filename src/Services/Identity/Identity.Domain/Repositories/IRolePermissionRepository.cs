@@ -27,6 +27,11 @@ namespace Identity.Domain.Repositories
             string functionId,
             string actionId,
             CancellationToken cancellationToken);
+        Task<IReadOnlyList<(string FunctionId, string ActionId)>> GetGrantedPermissionsAsync(
+            Guid userId,
+            Guid tenantId,
+            Guid scopeId,
+            CancellationToken cancellationToken);
         Task<bool> ReplaceRolePermissionsAsync(
             Guid roleId,
             Guid tenantId,

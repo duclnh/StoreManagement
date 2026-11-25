@@ -3,6 +3,7 @@ export {
   changePassword,
   disableTwoFactor,
   enableTwoFactor,
+  getCurrentUserProfile,
   getAuthenticatorSetup,
   getSession,
   registerUser,
@@ -12,11 +13,10 @@ export {
 export {
   createUser,
   emptyUserPage,
-  getAccountProfile,
   listUsers,
   updateUser,
   updateUserRoles,
   updateUserStatus,
 } from "./api/users.api";
-export { deleteRole, listRoles, saveRole } from "./api/roles.api";
+export { deleteRole, getIdentityAdminAccess, listRoles, saveRole } from "./api/roles.api";
 export { listSessions, revokeOtherSessions, revokeSession } from "./api/sessions.api";

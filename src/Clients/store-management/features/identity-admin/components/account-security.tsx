@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import {
   changePassword as changeAccountPassword,
@@ -8,14 +8,12 @@ import {
   enableTwoFactor as enableTwoFactorRequest,
   getAuthenticatorSetup,
 } from "../api/auth.api";
-import { getAccountProfile } from "../api/users.api";
 import type { AccountSecurityProps, AuthenticatorSetup } from "../interfaces";
 
-export default function AccountSecurity({ userId, onPasswordChanged }: AccountSecurityProps) {
+export default function AccountSecurity({ userId, twoFactorEnabled: initialTwoFactorEnabled, onPasswordChanged }: AccountSecurityProps) {
   const t = useTranslations("admin.security");
   const common = useTranslations("admin.common");
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-  const [loadingProfile, setLoadingProfile] = useState(Boolean(userId));
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState<boolean | null>(initialTwoFactorEnabled);
   const [busy, setBusy] = useState(false);
   const [setup, setSetup] = useState<AuthenticatorSetup | null>(null);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -24,24 +22,6 @@ export default function AccountSecurity({ userId, onPasswordChanged }: AccountSe
   const [code, setCode] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    let mounted = true;
-    if (!userId) return () => { mounted = false; };
-
-    getAccountProfile(userId)
-      .then((profile) => {
-        if (mounted) setTwoFactorEnabled(profile.twoFactorEnabled);
-      })
-      .catch((cause: unknown) => {
-        if (mounted) setError(cause instanceof Error ? cause.message : t("profileError"));
-      })
-      .finally(() => {
-        if (mounted) setLoadingProfile(false);
-      });
-
-    return () => { mounted = false; };
-  }, [t, userId]);
 
   async function changePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -134,7 +114,9 @@ export default function AccountSecurity({ userId, onPasswordChanged }: AccountSe
             <span className="role-card-icon">2FA</span>
             <div><h2>{t("authenticator")}</h2><p>{t("authenticatorHelp")}</p></div>
           </div>
-          {loadingProfile ? <p className="security-loading">{t("loading")}</p> : twoFactorEnabled ? (
+          {twoFactorEnabled === null ? (
+            <p className="security-field-error" role="alert">{t("profileError")}</p>
+          ) : twoFactorEnabled ? (
             <form className="editor-form" onSubmit={disableTwoFactor}>
               <p className="security-state"><span className="online-dot" /> {t("twoFactorOn")}</p>
               <label>{t("authenticatorCode")}<input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))} required /></label>
@@ -152,7 +134,7 @@ export default function AccountSecurity({ userId, onPasswordChanged }: AccountSe
           ) : (
             <div className="security-enable">
               <p>{t("useAuthenticator")}</p>
-              <button className="primary-button" onClick={() => void createSetup()} disabled={busy || loadingProfile}>{busy ? t("preparing") : t("setup")}</button>
+              <button className="primary-button" onClick={() => void createSetup()} disabled={busy || !userId}>{busy ? t("preparing") : t("setup")}</button>
             </div>
           )}
         </section>

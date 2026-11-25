@@ -11,23 +11,15 @@ namespace Identity.Application.UserCases.V1.Commands.Identity
             Guid userId,
             CancellationToken cancellationToken)
         {
-            var sessions = await unitOfWork.LoginSessionRepository
-                .FindAll(session => session.UserId == userId && !session.IsRevoked)
-                .ToListAsync(cancellationToken);
+            var count = await unitOfWork.RevokeLoginSessionsAsync(userId, cancellationToken: cancellationToken);
 
-            foreach (var session in sessions)
-            {
-                session.Revoke(DateTimeOffset.UtcNow);
-                unitOfWork.LoginSessionRepository.Update(session);
-            }
-
-            if (sessions.Count > 0)
+            if (count > 0)
             {
                 unitOfWork.SecurityAuditRepository.Record(
                     SecurityAuditEventTypes.SessionsRevoked,
                     SecurityAuditOutcomes.Succeeded,
                     userId,
-                    $"AllSessions:{sessions.Count}");
+                    $"AllSessions:{count}");
             }
             await unitOfWork.SaveChangeAsync(cancellationToken);
         }

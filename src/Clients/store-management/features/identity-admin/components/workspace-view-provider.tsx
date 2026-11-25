@@ -1,14 +1,14 @@
 "use client";
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { usePathname } from "next/navigation";
 
-export type WorkspaceView = "users" | "roles" | "sessions" | "security" | "audit" | "tenants";
+export type WorkspaceView = "users" | "roles" | "permissions" | "sessions" | "security" | "audit" | "tenants";
 const activeTenantStorageKey = "identity-admin-active-tenant";
 
 interface WorkspaceViewContextValue {
   view: WorkspaceView;
-  setView: (view: WorkspaceView) => void;
+  setView: Dispatch<SetStateAction<WorkspaceView>>;
   activeTenantId: string;
   setActiveTenantId: (tenantId: string) => void;
 }
@@ -23,7 +23,9 @@ export function useWorkspaceView() {
 
 export default function WorkspaceViewProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [view, setView] = useState<WorkspaceView>(pathname === "/settings" ? "security" : "users");
+  const [selectedView, setView] = useState<WorkspaceView>("users");
+  const view = pathname === "/settings" ? "security" : pathname === "/permissions" ? "permissions"
+    : selectedView === "permissions" || selectedView === "security" ? "users" : selectedView;
   const [activeTenantId, setActiveTenantIdState] = useState(() =>
     typeof window === "undefined" ? "" : window.localStorage.getItem(activeTenantStorageKey) ?? "",
   );

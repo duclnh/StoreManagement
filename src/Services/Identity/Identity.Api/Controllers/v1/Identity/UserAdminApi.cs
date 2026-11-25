@@ -22,36 +22,51 @@ namespace Identity.Presentation.Apis.V1.Identity
             var group = app.NewVersionedApi("identity-administration")
                 .MapGroup(BaseUrl)
                 .HasApiVersion(1)
-                .RequireAuthorization();
+                .RequireAuthorization()
+                .AddEndpointFilter<ScopeBoundaryFilter>();
 
             group.MapGet("users", GetUsers).RequirePermission("Identity.Users", "View");
             group.MapGet("users/{userId:guid}/roles", GetUserRoles).RequirePermission("Identity.Users", "View");
+            group.MapGet("users/{userId:guid}/sessions", GetUserSessions).RequirePermission("Identity.Sessions", "View");
+            group.MapPost("users/{userId:guid}/sessions/revoke", RevokeUserSession).RequirePermission("Identity.Sessions", "Revoke");
+            group.MapGet("users/{userId:guid}/claims", GetUserClaims).RequirePermission("Identity.Users", "View");
+            group.MapPost("users/{userId:guid}/claims", AddUserClaim).RequirePermission("Identity.Users", "Update");
+            group.MapDelete("users/{userId:guid}/claims", RemoveUserClaim).RequirePermission("Identity.Users", "Update");
             group.MapPost("users", CreateUser).RequirePermission("Identity.Users", "Create");
             group.MapGet("users/{userId:guid}", GetUser).RequirePermission("Identity.Users", "View");
             group.MapPut("users/{userId:guid}", UpdateUser).RequirePermission("Identity.Users", "Update");
             group.MapPatch("users/{userId:guid}/status", SetUserActive).RequirePermission("Identity.Users", "Update");
             group.MapPut("users/{userId:guid}/roles", AssignUserRoles).RequirePermission("Identity.Users", "Assign");
             group.MapGet("roles", GetRoles).RequirePermission("Identity.Roles", "View");
-            group.MapGet("scopes", GetIdentityScopes).RequirePermission("Identity.Users", "View");
+            group.MapGet("roles/{roleId:guid}/claims", GetRoleClaims).RequirePermission("Identity.Roles", "View");
+            group.MapPost("roles/{roleId:guid}/claims", AddRoleClaim).RequirePermission("Identity.Roles", "Assign");
+            group.MapDelete("roles/{roleId:guid}/claims", RemoveRoleClaim).RequirePermission("Identity.Roles", "Assign");
+            group.MapGet("access", GetIdentityAdminAccess)
+                .WithSummary("Get current identity-management permissions for a scope")
+                .WithDescription("Returns the authenticated user's effective permissions for the requested tenant scope.");
+            group.MapGet("scopes", GetIdentityScopes)
+                .WithSummary("List active identity scopes for the authenticated tenant")
+                .WithDescription("Returns tenant, organization, and branch names so users can select a scope where they have permissions.")
+                .Produces<Result<List<IdentityContracts.Response.IdentityScope>>>();
             group.MapGet("tenants", GetIdentityTenants)
                 .RequireAuthorization(policy => policy.RequireRole("Administrator"))
                 .WithSummary("List identity tenants")
                 .WithDescription("Returns all tenants, including inactive tenants, for platform administration.")
-                .Produces<List<IdentityContracts.Response.IdentityTenant>>();
+                .Produces<Result<List<IdentityContracts.Response.IdentityTenant>>>();
             group.MapGet("tenants/{tenantId:guid}/scopes", GetTenantScopes)
                 .RequireAuthorization(policy => policy.RequireRole("Administrator"))
                 .WithSummary("List tenant, organization, and branch scopes")
                 .WithDescription("Returns active and inactive scopes in the tenant for platform administration.")
-                .Produces<List<IdentityContracts.Response.IdentityAdminScope>>();
+                .Produces<Result<List<IdentityContracts.Response.IdentityAdminScope>>>();
             group.MapGet("scopes/{scopeId:guid}", GetIdentityScope)
                 .RequireAuthorization(policy => policy.RequireRole("Administrator"))
                 .WithSummary("Get an identity scope")
-                .Produces<IdentityContracts.Response.IdentityScope>()
+                .Produces<Result<IdentityContracts.Response.IdentityScope>>()
                 .Produces(StatusCodes.Status404NotFound);
             group.MapPost("tenants", CreateIdentityTenant)
                 .RequireAuthorization(policy => policy.RequireRole("Administrator"))
                 .WithSummary("Create an identity tenant")
-                .Produces<IdentityContracts.Response.IdentityScope>(StatusCodes.Status201Created)
+                .Produces<Result<IdentityContracts.Response.IdentityScope>>(StatusCodes.Status201Created)
                 .Produces(StatusCodes.Status409Conflict);
             group.MapPut("tenants/{tenantId:guid}/status", SetIdentityTenantStatus)
                 .RequireAuthorization(policy => policy.RequireRole("Administrator"))
@@ -61,7 +76,7 @@ namespace Identity.Presentation.Apis.V1.Identity
             group.MapPost("tenants/{tenantId:guid}/organizations", CreateIdentityOrganization)
                 .RequireAuthorization(policy => policy.RequireRole("Administrator"))
                 .WithSummary("Create an organization in a tenant")
-                .Produces<IdentityContracts.Response.IdentityScope>(StatusCodes.Status201Created)
+                .Produces<Result<IdentityContracts.Response.IdentityScope>>(StatusCodes.Status201Created)
                 .Produces(StatusCodes.Status404NotFound)
                 .Produces(StatusCodes.Status409Conflict);
             group.MapPut("tenants/{tenantId:guid}/organizations/{organizationId:guid}/status", SetIdentityOrganizationStatus)
@@ -72,7 +87,7 @@ namespace Identity.Presentation.Apis.V1.Identity
             group.MapPost("tenants/{tenantId:guid}/organizations/{organizationId:guid}/branches", CreateIdentityBranch)
                 .RequireAuthorization(policy => policy.RequireRole("Administrator"))
                 .WithSummary("Create a branch in an organization")
-                .Produces<IdentityContracts.Response.IdentityScope>(StatusCodes.Status201Created)
+                .Produces<Result<IdentityContracts.Response.IdentityScope>>(StatusCodes.Status201Created)
                 .Produces(StatusCodes.Status404NotFound)
                 .Produces(StatusCodes.Status409Conflict);
             group.MapPut("tenants/{tenantId:guid}/organizations/{organizationId:guid}/branches/{branchId:guid}/status", SetIdentityBranchStatus)
@@ -96,13 +111,27 @@ namespace Identity.Presentation.Apis.V1.Identity
             [FromQuery] int pageSize = 25)
         {
             var result = await sender.Send(new GetUsers(search, page, pageSize), cancellationToken);
-            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result.Value);
+            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result);
         }
 
         private async Task<IResult> GetUser(ISender sender, Guid userId, CancellationToken cancellationToken)
         {
             var result = await sender.Send(new GetUser(userId), cancellationToken);
-            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result.Value);
+            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result);
+        }
+
+        private async Task<IResult> GetUserSessions(ISender sender, ClaimsPrincipal actor, Guid userId, CancellationToken cancellationToken)
+        {
+            Guid.TryParse(actor.FindFirstValue(ClaimTypes.Sid), out var currentSessionId);
+            var result = await sender.Send(new ListSessions(userId, currentSessionId), cancellationToken);
+            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result);
+        }
+
+        private async Task<IResult> RevokeUserSession(ISender sender, Guid userId,
+            [FromBody] RevokeSession request, CancellationToken cancellationToken)
+        {
+            var result = await sender.Send(new IdentityContracts.Query.RevokeToken(userId, request.SessionId), cancellationToken);
+            return result.IsFailure ? HandlerFailure(result) : Results.NoContent();
         }
 
         private async Task<IResult> GetUserRoles(
@@ -112,27 +141,147 @@ namespace Identity.Presentation.Apis.V1.Identity
             CancellationToken cancellationToken)
         {
             if (!tenantContext.TenantId.HasValue || !tenantContext.RequestedScopeId.HasValue)
-                return Results.BadRequest(new { error = "A valid tenant and scope context are required." });
+                return Results.Problem(detail: "A valid tenant and scope context are required.", statusCode: StatusCodes.Status400BadRequest);
 
             var result = await sender.Send(
                 new GetUserRoles(userId, tenantContext.TenantId.Value, tenantContext.RequestedScopeId.Value),
                 cancellationToken);
-            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result.Value);
+            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result);
+        }
+
+        private Task<IResult> GetUserClaims(
+            ISender sender,
+            IIdentityTenantContext tenantContext,
+            Guid userId,
+            CancellationToken cancellationToken) =>
+            GetIdentityClaims(sender, tenantContext, userId, IdentityContracts.IdentityClaimOwnerType.User, cancellationToken);
+
+        private Task<IResult> GetRoleClaims(
+            ISender sender,
+            IIdentityTenantContext tenantContext,
+            Guid roleId,
+            CancellationToken cancellationToken) =>
+            GetIdentityClaims(sender, tenantContext, roleId, IdentityContracts.IdentityClaimOwnerType.Role, cancellationToken);
+
+        private async Task<IResult> GetIdentityClaims(
+            ISender sender,
+            IIdentityTenantContext tenantContext,
+            Guid ownerId,
+            IdentityContracts.IdentityClaimOwnerType ownerType,
+            CancellationToken cancellationToken)
+        {
+            if (!tenantContext.TenantId.HasValue)
+                return Results.Problem(detail: "A valid tenant context is required.", statusCode: StatusCodes.Status400BadRequest);
+
+            var result = await sender.Send(
+                new GetIdentityClaims(ownerId, tenantContext.TenantId.Value, ownerType),
+                cancellationToken);
+            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result);
+        }
+
+        private Task<IResult> AddUserClaim(
+            ISender sender,
+            IIdentityTenantContext tenantContext,
+            Guid userId,
+            [FromBody] IdentityClaimRequest request,
+            CancellationToken cancellationToken) =>
+            ChangeIdentityClaim(sender, tenantContext, userId, IdentityContracts.IdentityClaimOwnerType.User, request, true, cancellationToken);
+
+        private Task<IResult> RemoveUserClaim(
+            ISender sender,
+            IIdentityTenantContext tenantContext,
+            Guid userId,
+            [FromQuery] string type,
+            [FromQuery] string value,
+            CancellationToken cancellationToken) =>
+            ChangeIdentityClaim(
+                sender,
+                tenantContext,
+                userId,
+                IdentityContracts.IdentityClaimOwnerType.User,
+                new IdentityClaimRequest { Type = type, Value = value },
+                false,
+                cancellationToken);
+
+        private Task<IResult> AddRoleClaim(
+            ISender sender,
+            IIdentityTenantContext tenantContext,
+            Guid roleId,
+            [FromBody] IdentityClaimRequest request,
+            CancellationToken cancellationToken) =>
+            ChangeIdentityClaim(sender, tenantContext, roleId, IdentityContracts.IdentityClaimOwnerType.Role, request, true, cancellationToken);
+
+        private Task<IResult> RemoveRoleClaim(
+            ISender sender,
+            IIdentityTenantContext tenantContext,
+            Guid roleId,
+            [FromQuery] string type,
+            [FromQuery] string value,
+            CancellationToken cancellationToken) =>
+            ChangeIdentityClaim(
+                sender,
+                tenantContext,
+                roleId,
+                IdentityContracts.IdentityClaimOwnerType.Role,
+                new IdentityClaimRequest { Type = type, Value = value },
+                false,
+                cancellationToken);
+
+        private async Task<IResult> ChangeIdentityClaim(
+            ISender sender,
+            IIdentityTenantContext tenantContext,
+            Guid ownerId,
+            IdentityContracts.IdentityClaimOwnerType ownerType,
+            IdentityClaimRequest request,
+            bool add,
+            CancellationToken cancellationToken)
+        {
+            if (!tenantContext.TenantId.HasValue)
+                return Results.Problem(detail: "A valid tenant context is required.", statusCode: StatusCodes.Status400BadRequest);
+
+            var result = await sender.Send(
+                new ChangeIdentityClaim(
+                    ownerId,
+                    tenantContext.TenantId.Value,
+                    ownerType,
+                    request.Type,
+                    request.Value,
+                    add),
+                cancellationToken);
+            return result.IsFailure ? HandlerFailure(result) : Results.NoContent();
         }
 
         private async Task<IResult> GetIdentityScopes(ISender sender, IIdentityTenantContext tenantContext, CancellationToken cancellationToken)
         {
             if (!tenantContext.TenantId.HasValue)
-                return Results.BadRequest(new { error = "A valid tenant context is required." });
+                return Results.Problem(detail: "A valid tenant context is required.", statusCode: StatusCodes.Status400BadRequest);
 
             var result = await sender.Send(new GetIdentityScopes(tenantContext.TenantId.Value), cancellationToken);
-            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result.Value);
+            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result);
+        }
+
+        private async Task<IResult> GetIdentityAdminAccess(
+            ISender sender,
+            IIdentityTenantContext tenantContext,
+            CancellationToken cancellationToken)
+        {
+            if (!tenantContext.TenantId.HasValue || !tenantContext.UserId.HasValue
+                || !tenantContext.RequestedScopeId.HasValue)
+                return Results.Problem(detail: "A valid user, tenant, and scope context are required.", statusCode: StatusCodes.Status400BadRequest);
+
+            var result = await sender.Send(
+                new GetIdentityAdminAccess(
+                    tenantContext.UserId.Value,
+                    tenantContext.TenantId.Value,
+                    tenantContext.RequestedScopeId.Value),
+                cancellationToken);
+            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result);
         }
 
         private async Task<IResult> GetIdentityTenants(ISender sender, CancellationToken cancellationToken)
         {
             var result = await sender.Send(new GetIdentityTenants(), cancellationToken);
-            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result.Value);
+            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result);
         }
 
         private async Task<IResult> GetTenantScopes(
@@ -141,7 +290,7 @@ namespace Identity.Presentation.Apis.V1.Identity
             CancellationToken cancellationToken)
         {
             var result = await sender.Send(new GetTenantScopes(tenantId), cancellationToken);
-            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result.Value);
+            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result);
         }
 
         private async Task<IResult> GetIdentityScope(ISender sender, Guid scopeId, CancellationToken cancellationToken)
@@ -149,7 +298,7 @@ namespace Identity.Presentation.Apis.V1.Identity
             var result = await sender.Send(new GetIdentityScope(scopeId), cancellationToken);
             if (result.IsFailure)
                 return HandlerFailure(result);
-            return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+            return result.Value is null ? Results.NotFound() : Results.Ok(result);
         }
 
         private async Task<IResult> CreateIdentityTenant(
@@ -161,7 +310,7 @@ namespace Identity.Presentation.Apis.V1.Identity
             if (result.IsFailure)
                 return IdentityScopeFailure(result.Error!);
             var scope = result.Value ?? throw new InvalidOperationException("Tenant creation returned no scope.");
-            return Results.Created($"/api/v1/admin/scopes/{scope.Id}", scope);
+            return Results.Created($"/api/v1/admin/scopes/{scope.Id}", result);
         }
 
         private async Task<IResult> CreateIdentityOrganization(
@@ -174,7 +323,7 @@ namespace Identity.Presentation.Apis.V1.Identity
             if (result.IsFailure)
                 return IdentityScopeFailure(result.Error!);
             var scope = result.Value ?? throw new InvalidOperationException("Organization creation returned no scope.");
-            return Results.Created($"/api/v1/admin/scopes/{scope.Id}", scope);
+            return Results.Created($"/api/v1/admin/scopes/{scope.Id}", result);
         }
 
         private async Task<IResult> CreateIdentityBranch(
@@ -190,7 +339,7 @@ namespace Identity.Presentation.Apis.V1.Identity
             if (result.IsFailure)
                 return IdentityScopeFailure(result.Error!);
             var scope = result.Value ?? throw new InvalidOperationException("Branch creation returned no scope.");
-            return Results.Created($"/api/v1/admin/scopes/{scope.Id}", scope);
+            return Results.Created($"/api/v1/admin/scopes/{scope.Id}", result);
         }
 
         private async Task<IResult> SetIdentityTenantStatus(
@@ -260,19 +409,24 @@ namespace Identity.Presentation.Apis.V1.Identity
 
         private async Task<IResult> CreateUser(
             ISender sender,
+            IIdentityTenantContext tenantContext,
             [FromBody] CreateManagedUserRequest request,
             CancellationToken cancellationToken)
         {
+            if (!tenantContext.TenantId.HasValue || !tenantContext.RequestedScopeId.HasValue)
+                return Results.Problem(detail: "A valid tenant and scope context are required.", statusCode: StatusCodes.Status400BadRequest);
+
             var command = new CreateManagedUser(
                 request.Email,
                 request.Password,
                 request.FirstName,
                 request.LastName,
-                request.Roles);
+                request.Roles,
+                tenantContext.RequestedScopeId.Value);
             var result = await sender.Send(command, cancellationToken);
             return result.IsFailure
                 ? HandlerFailure(result)
-                : Results.Created($"/api/v1/admin/users/{result.Value}", result.Value);
+                : Results.Created($"/api/v1/admin/users/{result.Value}", result);
         }
 
         private async Task<IResult> UpdateUser(
@@ -314,7 +468,7 @@ namespace Identity.Presentation.Apis.V1.Identity
             if (!TryGetActorId(actor, out var actorId))
                 return Results.Unauthorized();
             if (!tenantContext.TenantId.HasValue || !tenantContext.RequestedScopeId.HasValue)
-                return Results.BadRequest(new { error = "A valid tenant and scope context are required." });
+                return Results.Problem(detail: "A valid tenant and scope context are required.", statusCode: StatusCodes.Status400BadRequest);
 
             var result = await sender.Send(new AssignUserRoles(
                 userId,
@@ -328,7 +482,7 @@ namespace Identity.Presentation.Apis.V1.Identity
         private async Task<IResult> GetRoles(ISender sender, CancellationToken cancellationToken)
         {
             var result = await sender.Send(new GetRoles(), cancellationToken);
-            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result.Value);
+            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result);
         }
 
         private async Task<IResult> GetRolePermissions(
@@ -338,12 +492,12 @@ namespace Identity.Presentation.Apis.V1.Identity
             CancellationToken cancellationToken)
         {
             if (!tenantContext.TenantId.HasValue || !tenantContext.RequestedScopeId.HasValue)
-                return Results.BadRequest(new { error = "A valid tenant and scope context are required." });
+                return Results.Problem(detail: "A valid tenant and scope context are required.", statusCode: StatusCodes.Status400BadRequest);
 
             var result = await sender.Send(
                 new GetRolePermissions(roleId, tenantContext.TenantId.Value, tenantContext.RequestedScopeId.Value),
                 cancellationToken);
-            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result.Value);
+            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result);
         }
 
         private async Task<IResult> GetSecurityAuditEvents(
@@ -354,13 +508,14 @@ namespace Identity.Presentation.Apis.V1.Identity
             [FromQuery] string? eventType = null,
             [FromQuery] string? outcome = null,
             [FromQuery] Guid? userId = null,
+            [FromQuery] string? userName = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50)
         {
             var result = await sender.Send(
-                new GetSecurityAuditEvents(fromUtc, toUtc, eventType, outcome, userId, page, pageSize),
+                new GetSecurityAuditEvents(fromUtc, toUtc, eventType, outcome, userId, userName, page, pageSize),
                 cancellationToken);
-            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result.Value);
+            return result.IsFailure ? HandlerFailure(result) : Results.Ok(result);
         }
 
         private async Task<IResult> SetRolePermissions(
@@ -371,9 +526,9 @@ namespace Identity.Presentation.Apis.V1.Identity
             CancellationToken cancellationToken)
         {
             if (request.Permissions is null || request.Permissions.Any(permission => permission is null))
-                return Results.BadRequest(new { error = "A permission list is required." });
+                return Results.Problem(detail: "A permission list is required.", statusCode: StatusCodes.Status400BadRequest);
             if (!tenantContext.TenantId.HasValue || !tenantContext.RequestedScopeId.HasValue)
-                return Results.BadRequest(new { error = "A valid tenant and scope context are required." });
+                return Results.Problem(detail: "A valid tenant and scope context are required.", statusCode: StatusCodes.Status400BadRequest);
 
             var result = await sender.Send(
                 new SetRolePermissionsCommand(
@@ -393,7 +548,7 @@ namespace Identity.Presentation.Apis.V1.Identity
             CancellationToken cancellationToken)
         {
             var result = await sender.Send(request, cancellationToken);
-            return result.IsFailure ? HandlerFailure(result) : Results.Created($"/api/v1/admin/roles/{result.Value}", result.Value);
+            return result.IsFailure ? HandlerFailure(result) : Results.Created($"/api/v1/admin/roles/{result.Value}", result);
         }
 
         private async Task<IResult> UpdateRole(
